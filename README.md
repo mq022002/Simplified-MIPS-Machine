@@ -36,7 +36,13 @@ VS Marketplace Link: https://marketplace.visualstudio.com/items?itemName=mshr-h.
 
 2. Ensure that you have Icarus Verilog installed on your system. I downloaded the latest version off of the website that our professor provided: https://bleyer.org/icarus/
 
-This does NOT go into Program Files if you're on Windows. Select all defaults, ensure that it is installed into a folder that contains no space characters. Add to PATH, and restart your system.
+On Windows, this does NOT go into Program Files. Select all defaults, ensure that it is installed into a folder that contains no space characters. Add to PATH, and restart your system.
+
+On MacOS, you can install Icarus Verilog using Homebrew. If you don't have Homebrew installed, you can install it by running the following command in the terminal:
+
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
 
 3. A tasks.json is already configured for you, and is always in version control should you lose it. Ensure that you always have this file.
 
