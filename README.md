@@ -34,9 +34,13 @@ Publisher: Masahiro Hiramori
 VS Marketplace Link: https://marketplace.visualstudio.com/items?itemName=mshr-h.VerilogHDL
 ```
 
-2. A tasks.json is already configured for you, and is always in version control should you lose it. Ensure that you always have this file.
+2. Ensure that you have Icarus Verilog installed on your system. I downloaded the latest version off of the website that our professor provided: https://bleyer.org/icarus/
 
-3. Open `behavioral_serial_adder.v`. To ensure that everything is working, open the command pallete using the following command:
+This does NOT go into Program Files if you're on Windows. Select all defaults, ensure that it is installed into a folder that contains no space characters. Add to PATH, and restart your system.
+
+3. A tasks.json is already configured for you, and is always in version control should you lose it. Ensure that you always have this file.
+
+4. Open `behavioral_serial_adder.v`. To ensure that everything is working, open the command pallete using the following command:
 
 ```
 Windows:
