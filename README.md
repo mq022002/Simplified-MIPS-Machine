@@ -44,6 +44,29 @@ On MacOS, you can install Icarus Verilog using Homebrew. If you don't have Homeb
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
 
+### Makefile
+
+3. Open a PowerShell terminal as an administrator, and run the following command to install Make:
+
+```ps1
+choco install make
+```
+
+4. Ensure that make is installed by running the following command. If it it errors out and the installation process succeeded, you will need to restart your computer to ensure that the registry has been updated:
+
+```ps1
+make
+```
+
+5. A Makefile is already configured for your convenience. Instructions on usage are included there, but just to make sure there is not confusion. Ensure you are in the progress_report_1 directory:
+
+```bash
+cd progress_report_1
+make compile_and_run_ALU_tb
+```
+
+### VS Code Task
+
 3. A tasks.json is already configured for you, and is always in version control should you lose it. Ensure that you always have this file.
 
 4. Open `behavioral_serial_adder.v`. To ensure that everything is working, open the command pallete using the following command:
@@ -56,4 +79,4 @@ MacOS:
 CMD + SHIFT + P
 ```
 
-Now, type "run task", select it by pressing your 'Enter' key, and select iverliog. This should provide an output file, which is for Verilog, not human-readable. The result that Verilog reads from that output file is then generated into your terminal.
+Now, type "run task", select it by pressing your 'Enter' key, and select iverliog. This should provide an output file, which is for Verilog, not human-readable. The result that Verilog reads from that output file is then generated into your terminal. You would typically run this on the testbench file, after compiling the file in src. This may be removed in the future though.
