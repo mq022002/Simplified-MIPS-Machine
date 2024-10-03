@@ -24,7 +24,7 @@ ALU_TB = ALU_tb.v
 REGISTER_FILE_TB = RegisterFile_tb.v
 PC_TB = PC_tb.v
 INSTRUCTION_MEMORY_TB = InstructionMemory_tb.v
-CPU_TB = CPU.v
+CPU_TB = CPU_tb.v
 
 ALU_TB_OUT = $(OUT_DIR)/ALU_tb.out
 REGISTER_FILE_TB_OUT = $(OUT_DIR)/RegisterFile_tb.out
