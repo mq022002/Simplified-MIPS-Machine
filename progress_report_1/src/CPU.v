@@ -6,11 +6,16 @@ module CPU (
     wire [15:0] PC, nextPC, instruction, RD1, RD2, ALUOut, ALUIn2, immediate;
     wire [3:0] ALUControl;
     wire RegWrite, ALUSrc, Zero;
+    reg halt;
+
+    initial begin
+        halt = 0;
+    end
 
     PC program_counter (
         .clock(clock),
         .reset(reset),
-        .nextPC(nextPC),
+        .nextPC(halt ? PC : nextPC),
         .PC(PC)
     );
 
@@ -48,6 +53,13 @@ module CPU (
         .ALUOut(ALUOut),
         .Zero(Zero)
     );
+
+    always @(posedge clock or posedge reset) begin
+        if (reset)
+            halt <= 0;
+        else if (instruction == 16'hFFFF)
+            halt <= 1;
+    end
 
     assign nextPC = PC + 16'h0002;
 
