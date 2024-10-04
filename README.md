@@ -54,6 +54,12 @@ On MacOS, you can install Icarus Verilog using Homebrew. If you don't have Homeb
 choco install make
 ```
 
+If you are on MacOS, use the following command to install Make using Homebrew:
+
+```bash
+brew install make
+```
+
 5. Ensure that make is installed by running the following command. If it it errors out and the installation process succeeded, you will need to restart your computer to ensure that the registry has been updated:
 
 ```ps1

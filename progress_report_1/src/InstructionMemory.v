@@ -13,6 +13,8 @@ module InstructionMemory (
         memory[4] = 16'h014B;
         memory[5] = 16'h014B;
         memory[6] = 16'h016A;
+        memory[7] = 16'h018B;
+        memory[8] = 16'hFFFF;
     end
 
     assign instruction = memory[address[9:0]];

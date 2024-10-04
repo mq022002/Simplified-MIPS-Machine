@@ -49,7 +49,7 @@ compile_and_run_InstructionMemory_tb:
 	$(VVP) $(INSTRUCTION_MEMORY_TB_OUT)
 
 compile_and_run_CPU_tb:
-	$(IVERILOG) -o $(CPU_TB_OUT) $(SRC_DIR)/$(ALU) $(SRC_DIR)/$(REGISTER_FILE) $(SRC_DIR)/$(INSTRUCTION_MEMORY) $(SRC_DIR)/$(PC) $(TB_DIR)/$(CPU_TB)
+	$(IVERILOG) -o $(CPU_TB_OUT) $(SRC_DIR)/$(ALU) $(SRC_DIR)/$(REGISTER_FILE) $(SRC_DIR)/$(INSTRUCTION_MEMORY) $(SRC_DIR)/$(PC) $(SRC_DIR)/$(CPU) $(TB_DIR)/$(CPU_TB)
 	$(VVP) $(CPU_TB_OUT)
 
 all: compile_and_run_ALU_tb compile_and_run_RegisterFile_tb compile_and_run_PC_tb compile_and_run_InstructionMemory_tb compile_and_run_CPU_tb

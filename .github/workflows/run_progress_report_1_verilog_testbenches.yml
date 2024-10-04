@@ -1,0 +1,37 @@
+name: Run progress_report_1 Verilog Testbenches
+
+on:
+  push:
+    branches:
+      - "dev/*"
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install Icarus Verilog
+      run: sudo apt-get update && sudo apt-get install -y iverilog
+
+    - name: Run ALU Testbench
+      run: make compile_and_run_ALU_tb
+      working-directory: progress_report_1
+
+    - name: Run RegisterFile Testbench
+      run: make compile_and_run_RegisterFile_tb
+      working-directory: progress_report_1
+
+    - name: Run PC Testbench
+      run: make compile_and_run_PC_tb
+      working-directory: progress_report_1
+
+    - name: Run InstructionMemory Testbench
+      run: make compile_and_run_InstructionMemory_tb
+      working-directory: progress_report_1
+
+    - name: Run CPU Testbench
+      run: make compile_and_run_CPU_tb
+      working-directory: progress_report_1
