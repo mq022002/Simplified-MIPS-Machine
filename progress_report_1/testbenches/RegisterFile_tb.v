@@ -44,6 +44,7 @@ module RegisterFile_tb;
     always #5 clock = ~clock;
 
     initial begin
-        $monitor("Time: %0d | RR1: %b | RR2: %b | RD1: %h | RD2: %h", $time, RR1, RR2, RD1, RD2);
+        $display("regwrite=%b clock=%b rr1=%b rr2=%b wr=%b wd=%h rd1=%h rd2=%h", RegWrite, clock, RR1, RR2, WR, WD, RD1, RD2);
+        $monitor("regwrite=%b clock=%b rr1=%b rr2=%b wr=%b wd=%h rd1=%h rd2=%h", RegWrite, clock, RR1, RR2, WR, WD, RD1, RD2);
     end
 endmodule
