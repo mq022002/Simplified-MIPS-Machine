@@ -1,5 +1,5 @@
 // Author(s): Abbie Mathew
-module reg_file (
+module RegisterFile (
     input [1:0] RR1,
     input [1:0] RR2,
     input [1:0] WR,

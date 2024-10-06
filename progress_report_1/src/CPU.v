@@ -31,7 +31,7 @@ module CPU (
         .ALUSrc(ALUSrc)
     );
 
-    reg_file register_file (
+    RegisterFile register_file (
         .RR1(instruction[11:10]),
         .RR2(instruction[9:8]),
         .WR(instruction[7:6]),

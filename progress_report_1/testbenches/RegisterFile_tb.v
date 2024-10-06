@@ -1,5 +1,5 @@
 // Author(s): Joey Conroy, Matthew Quijano
-module reg_file_tb;
+module RegisterFile_tb;
     reg [1:0] RR1;
     reg [1:0] RR2;
     reg [1:0] WR;
@@ -9,7 +9,7 @@ module reg_file_tb;
     wire [15:0] RD1;
     wire [15:0] RD2;
 
-    reg_file uut (
+    RegisterFile uut (
         .RR1(RR1),
         .RR2(RR2),
         .WR(WR),
