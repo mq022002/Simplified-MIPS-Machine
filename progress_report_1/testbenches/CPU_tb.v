@@ -18,7 +18,7 @@ module CPU_tb;
     always #5 clock = ~clock;
 
     initial begin
-        $monitor("Time: %0d | PC: %h | Instruction: %h | ALUOut: %h | A (RD1): %h | B (ALUIn2): %h | ALUControl: %b | Zero: %b | RegWrite: %b | WR: %b | WD: %h | Immediate: %h", 
-                 $time, uut.PC, uut.instruction, uut.ALUOut, uut.RD1, uut.ALUIn2, uut.ALUControl, uut.Zero, uut.RegWrite, uut.instruction[7:6], uut.ALUOut, uut.immediate);
+        $display("Clock PC   IR                  WD");
+        $monitor("%b     %2d   %b  %3d (%b)", clock, uut.PC, uut.instruction, uut.ALUOut, uut.ALUOut);
     end
 endmodule
