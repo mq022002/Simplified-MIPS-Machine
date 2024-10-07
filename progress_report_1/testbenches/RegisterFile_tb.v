@@ -1,13 +1,9 @@
-// Author(s): Joey Conroy, Matthew Quijano
+// Author(s): Joey Conroy
 module RegisterFile_tb;
-    reg [1:0] RR1;
-    reg [1:0] RR2;
-    reg [1:0] WR;
+    reg [1:0] RR1, RR2, WR;
     reg [15:0] WD;
-    reg RegWrite;
-    reg clock;
-    wire [15:0] RD1;
-    wire [15:0] RD2;
+    reg RegWrite, clock;
+    wire [15:0] RD1, RD2;
 
     RegisterFile uut (
         .RR1(RR1),
@@ -20,31 +16,44 @@ module RegisterFile_tb;
         .RD2(RD2)
     );
 
-    initial begin
-        clock = 0;
-        RegWrite = 0;
-        WD = 16'h0000;
-        RR1 = 2'b00;
-        RR2 = 2'b01;
-        WR = 2'b00;
-
-        #5 RegWrite = 1; WR = 2'b01; WD = 16'hAAAA;
-        #10 RegWrite = 0;
-
-        #5 RR1 = 2'b01;
-
-        #5 RegWrite = 1; WR = 2'b10; WD = 16'h5555;
-        #10 RegWrite = 0;
-
-        #5 RR2 = 2'b10;
-
-        #20 $finish;
-    end
-
     always #5 clock = ~clock;
 
     initial begin
-        $display("regwrite=%b clock=%b rr1=%b rr2=%b wr=%b wd=%h rd1=%h rd2=%h", RegWrite, clock, RR1, RR2, WR, WD, RD1, RD2);
-        $monitor("regwrite=%b clock=%b rr1=%b rr2=%b wr=%b wd=%h rd1=%h rd2=%h", RegWrite, clock, RR1, RR2, WR, WD, RD1, RD2);
+        clock = 0; 
+        RegWrite = 1; 
+        WD = 0;
+
+        #10 RR1 = 0; RR2 = 0;
+        #10 WR = 1; RR1 = 1; RR2 = 1; clock = 1;
+        #10 clock = 0;
+        #10 WR = 2; RR1 = 2; RR2 = 2; clock = 1;
+        #10 clock = 0;
+        #10 WR = 3; RR1 = 3; RR2 = 3; clock = 1;
+        #10 clock = 0;
+
+        #10 RegWrite = 0;
+        #10 WD = 16'hAAAA;
+        #10 WR = 1; RR1 = 1; RR2 = 1; clock = 1;
+        #10 clock = 0;
+        #10 WR = 2; RR1 = 2; RR2 = 2; clock = 1;
+        #10 clock = 0;
+        #10 WR = 3; RR1 = 3; RR2 = 3; clock = 1;
+        #10 clock = 0;
+
+        #10 RegWrite = 1;
+        #10 WD = 16'h5555;
+        #10 WR = 1; RR1 = 1; RR2 = 1; clock = 1;
+        #10 clock = 0;
+        #10 WR = 2; RR1 = 2; RR2 = 2; clock = 1;
+        #10 clock = 0;
+        #10 WR = 3; RR1 = 3; RR2 = 3; clock = 1;
+        #10 clock = 0;
+
+        $finish;
+    end
+
+    initial begin
+        $monitor("regwrite=%d clock=%d RR1=%d RR2=%d WR=%d WD=%h RD1=%h RD2=%h", 
+                 RegWrite, clock, RR1, RR2, WR, WD, RD1, RD2);
     end
 endmodule
