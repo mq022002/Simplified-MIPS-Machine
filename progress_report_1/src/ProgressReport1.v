@@ -2,7 +2,7 @@
 module ALU (
     input [3:0] ALUControl,
     input [15:0] A, B,
-    output reg [15:0] ALUOut,
+    output reg signed [15:0] ALUOut,
     output Zero
 );
     always @(*)
@@ -188,7 +188,7 @@ endmodule
 // Author(s): Joey Conroy, Abbie Mathew
 module CPU_tb;
     reg clock;
-    wire [15:0] ALUOut, IR, PC;
+    wire signed[15:0] ALUOut, IR, PC;
 
     CPU test_cpu(
         .clock(clock),
@@ -201,7 +201,7 @@ module CPU_tb;
 
     initial begin
         $display("Clock PC   IR                 WD");
-        $monitor("%b     %2d   %b  %3d (%b)", clock, PC, IR, ALUOut, ALUOut);
+        $monitor("%b     %2d   %b  %d (%b)", clock, PC, IR, ALUOut, ALUOut);
         clock = 1;
         #34 $finish;
     end
