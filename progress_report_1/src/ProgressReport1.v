@@ -232,7 +232,7 @@ module CPU_tb;
     always #1 clock = ~clock;
 
     initial begin
-        $display("Clock PC   IR                 WD");
+        $display("Clock PC   IR                    WD");
         $monitor("%b     %2d   %b  %d (%b)", clock, PC, IR, ALUOut, ALUOut);
         clock = 1;
         #34 $finish;
