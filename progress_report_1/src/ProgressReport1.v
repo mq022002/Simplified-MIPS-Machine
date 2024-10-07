@@ -73,6 +73,27 @@ module RegisterFile (
             Regs[WR] <= WD;
 endmodule
 
+// Author(s): Joey Conroy, Abbie Mathew
+module InstructionMemory (
+    input [15:0] Address,
+    output [15:0] Instruction
+);
+    reg [15:0] IMemory[0:1023];
+    assign Instruction = IMemory[Address >> 1];
+
+    initial begin
+        IMemory[0] = 16'b0111_00_01_00001111;
+        IMemory[1] = 16'b0111_00_10_00000111;
+        IMemory[2] = 16'b0010_01_10_11_000000;
+        IMemory[3] = 16'b0001_01_11_10_000000;
+        IMemory[4] = 16'b0011_10_11_10_000000;
+        IMemory[5] = 16'b0000_10_11_11_000000;
+        IMemory[6] = 16'b0100_10_11_01_000000;
+        IMemory[7] = 16'b0110_11_10_01_000000;
+        IMemory[8] = 16'b0110_10_11_01_000000;
+        IMemory[9] = 16'hFFFF;
+    end
+endmodule
 
 // Author(s): Matthew Quijano
 module ControlUnit (
@@ -141,7 +162,7 @@ module ControlUnit (
         endcase
 endmodule
 
-// Author(s): Joey Conrory, Abbie Mathew
+// Author(s): Joey Conroy, Abbie Mathew
 module CPU (
     input clock,
     output [15:0] PC,
@@ -149,28 +170,18 @@ module CPU (
     output [15:0] IR
 );
     reg [15:0] PC_reg;
-    reg [15:0] InstructionMemory[0:1023];
     wire [15:0] NextPC, A, RD2, B, SignExtend;
     wire [3:0] ALUControl;
     wire [1:0] WR;
     wire RegDst, ALUSrc, RegWrite, Zero;
 
-    initial begin
-        InstructionMemory[0] = 16'b0111_00_01_00001111;
-        InstructionMemory[1] = 16'b0111_00_10_00000111;
-        InstructionMemory[2] = 16'b0010_01_10_11_000000;
-        InstructionMemory[3] = 16'b0001_01_11_10_000000;
-        InstructionMemory[4] = 16'b0011_10_11_10_000000;
-        InstructionMemory[5] = 16'b0000_10_11_11_000000;
-        InstructionMemory[6] = 16'b0100_10_11_01_000000;
-        InstructionMemory[7] = 16'b0110_11_10_01_000000;
-        InstructionMemory[8] = 16'b0110_10_11_01_000000;
-        InstructionMemory[9] = 16'hFFFF;
-    end
+    InstructionMemory instr_mem (
+        .Address(PC_reg),
+        .Instruction(IR)
+    );
 
     initial PC_reg = 0;
     assign PC = PC_reg;
-    assign IR = InstructionMemory[PC_reg >> 1];
 
     ControlUnit MainCtr(
         .Op(IR[15:12]),
@@ -232,7 +243,7 @@ module CPU_tb;
     always #1 clock = ~clock;
 
     initial begin
-        $display("Clock PC   IR                    WD");
+        $display("Clock PC   IR                 WD");
         $monitor("%b     %2d   %b  %d (%b)", clock, PC, IR, ALUOut, ALUOut);
         clock = 1;
         #34 $finish;
