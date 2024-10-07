@@ -1,21 +1,21 @@
 // Author(s): Matthew Quijano
 module InstructionMemory (
-    input [15:0] address,
-    output [15:0] instruction
+    input [15:0] Address,
+    output [15:0] Instruction
 );
-    reg [15:0] memory [0:1023];
+    reg [15:0] IMemory[0:1023];
+    assign Instruction = IMemory[Address >> 1];
 
     initial begin
-        memory[0] = 16'h2009;
-        memory[1] = 16'h200A;
-        memory[2] = 16'h012A;
-        memory[3] = 16'h012B;
-        memory[4] = 16'h014B;
-        memory[5] = 16'h014B;
-        memory[6] = 16'h016A;
-        memory[7] = 16'h018B;
-        memory[8] = 16'hFFFF;
+        IMemory[0] = 16'b0111_00_01_00001111;
+        IMemory[1] = 16'b0111_00_10_00000111;
+        IMemory[2] = 16'b0010_01_10_11_000000;
+        IMemory[3] = 16'b0001_01_11_10_000000;
+        IMemory[4] = 16'b0011_10_11_10_000000;
+        IMemory[5] = 16'b0000_10_11_11_000000;
+        IMemory[6] = 16'b0100_10_11_01_000000;
+        IMemory[7] = 16'b0110_11_10_01_000000;
+        IMemory[8] = 16'b0110_10_11_01_000000;
+        IMemory[9] = 16'hFFFF;
     end
-
-    assign instruction = memory[address[9:0]];
 endmodule

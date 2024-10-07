@@ -1,5 +1,5 @@
 // Author(s): Joey Conroy, Matthew Quijano
-module reg_file_tb;
+module RegisterFile_tb;
     reg [1:0] RR1;
     reg [1:0] RR2;
     reg [1:0] WR;
@@ -9,7 +9,7 @@ module reg_file_tb;
     wire [15:0] RD1;
     wire [15:0] RD2;
 
-    reg_file uut (
+    RegisterFile uut (
         .RR1(RR1),
         .RR2(RR2),
         .WR(WR),
@@ -44,6 +44,7 @@ module reg_file_tb;
     always #5 clock = ~clock;
 
     initial begin
-        $monitor("Time: %0d | RR1: %b | RR2: %b | RD1: %h | RD2: %h", $time, RR1, RR2, RD1, RD2);
+        $display("regwrite=%b clock=%b rr1=%b rr2=%b wr=%b wd=%h rd1=%h rd2=%h", RegWrite, clock, RR1, RR2, WR, WD, RD1, RD2);
+        $monitor("regwrite=%b clock=%b rr1=%b rr2=%b wr=%b wd=%h rd1=%h rd2=%h", RegWrite, clock, RR1, RR2, WR, WD, RD1, RD2);
     end
 endmodule
