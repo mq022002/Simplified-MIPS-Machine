@@ -1,24 +1,21 @@
 // Author(s): Joey Conroy, Abbie Mathew
 module CPU_tb;
     reg clock;
-    reg reset;
+    wire signed[15:0] ALUOut, IR, PC;
 
-    CPU uut (
+    CPU test_cpu(
         .clock(clock),
-        .reset(reset)
+        .PC(PC),
+        .ALUOut(ALUOut),
+        .IR(IR)
     );
 
-    initial begin
-        clock = 0;
-        reset = 1;
-        #10 reset = 0;
-        #100 $finish;
-    end
-
-    always #5 clock = ~clock;
+    always #1 clock = ~clock;
 
     initial begin
-        $display("Clock PC   IR                  WD");
-        $monitor("%b     %2d   %b  %3d (%b)", clock, uut.PC, uut.instruction, uut.ALUOut, uut.ALUOut);
+        $display("Clock PC   IR                 WD");
+        $monitor("%b     %2d   %b  %d (%b)", clock, PC, IR, ALUOut, ALUOut);
+        clock = 1;
+        #34 $finish;
     end
 endmodule

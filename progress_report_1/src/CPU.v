@@ -1,66 +1,74 @@
-// Author(s): Joey Conrory, Abbie Mathew
+// Author(s): Joey Conroy, Abbie Mathew, Matthew Quijano
 module CPU (
     input clock,
-    input reset
+    output [15:0] PC,
+    output [15:0] ALUOut,
+    output [15:0] IR
 );
-    wire [15:0] PC, nextPC, instruction, RD1, RD2, ALUOut, ALUIn2, immediate;
-    wire [3:0] ALUControl;
-    wire RegWrite, ALUSrc, Zero;
+    reg [15:0] PC_reg;
     reg halt;
+    wire [15:0] NextPC, A, RD2, B, SignExtend;
+    wire [3:0] ALUControl;
+    wire [1:0] WR;
+    wire RegDst, ALUSrc, RegWrite, Zero;
+
+    InstructionMemory instr_mem (
+        .Address(PC_reg),
+        .Instruction(IR)
+    );
 
     initial begin
+        PC_reg = 0;
         halt = 0;
     end
 
-    PC program_counter (
-        .clock(clock),
-        .reset(reset),
-        .nextPC(halt ? PC : nextPC),
-        .PC(PC)
-    );
+    assign PC = PC_reg;
 
-    InstructionMemory instr_mem (
-        .address(PC),
-        .instruction(instruction)
-    );
-
-    ControlUnit control_unit (
-        .opcode(instruction[15:12]),
+    ControlUnit MainCtr(
+        .Op(IR[15:12]),
+        .RegDst(RegDst),
+        .ALUSrc(ALUSrc),
         .RegWrite(RegWrite),
-        .ALUControl(ALUControl),
-        .ALUSrc(ALUSrc)
+        .ALUControl(ALUControl)
     );
 
-    RegisterFile register_file (
-        .RR1(instruction[11:10]),
-        .RR2(instruction[9:8]),
-        .WR(instruction[7:6]),
+    RegisterFile rf(
+        .RR1(IR[11:10]),
+        .RR2(IR[9:8]),
+        .WR(WR),
         .WD(ALUOut),
         .RegWrite(RegWrite),
         .clock(clock),
-        .RD1(RD1),
+        .RD1(A),
         .RD2(RD2)
     );
 
-    assign immediate = {{8{instruction[7]}}, instruction[7:0]};
+    assign SignExtend = {{8{IR[7]}}, IR[7:0]};
 
-    assign ALUIn2 = (ALUSrc) ? immediate : RD2;
+    assign WR = (RegDst) ? IR[7:6] : IR[9:8];
 
-    ALU alu (
-        .A(RD1),
-        .B(ALUIn2),
+    assign B = (ALUSrc) ? SignExtend : RD2;
+
+    ALU ex(
         .ALUControl(ALUControl),
+        .A(A),
+        .B(B),
         .ALUOut(ALUOut),
         .Zero(Zero)
     );
 
-    always @(posedge clock or posedge reset) begin
-        if (reset)
-            halt <= 0;
-        else if (instruction == 16'hFFFF)
+    ALU fetch(
+        .ALUControl(4'b0010),
+        .A(PC_reg),
+        .B(16'd2),
+        .ALUOut(NextPC),
+        .Zero()
+    );
+
+    always @(negedge clock) begin
+        if (IR == 16'hFFFF)
             halt <= 1;
+        if (!halt)
+            PC_reg <= NextPC;
     end
-
-    assign nextPC = PC + 16'h0002;
-
 endmodule
