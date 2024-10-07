@@ -170,6 +170,7 @@ module CPU (
     output [15:0] IR
 );
     reg [15:0] PC_reg;
+    reg halt;
     wire [15:0] NextPC, A, RD2, B, SignExtend;
     wire [3:0] ALUControl;
     wire [1:0] WR;
@@ -180,7 +181,11 @@ module CPU (
         .Instruction(IR)
     );
 
-    initial PC_reg = 0;
+    initial begin
+        PC_reg = 0;
+        halt = 0;
+    end
+
     assign PC = PC_reg;
 
     ControlUnit MainCtr(
@@ -224,8 +229,12 @@ module CPU (
         .Zero()
     );
 
-    always @(negedge clock)
-        PC_reg <= NextPC;
+    always @(negedge clock) begin
+        if (IR == 16'hFFFF)
+            halt <= 1;
+        if (!halt)
+            PC_reg <= NextPC;
+    end
 endmodule
 
 // Author(s): Joey Conroy, Abbie Mathew
