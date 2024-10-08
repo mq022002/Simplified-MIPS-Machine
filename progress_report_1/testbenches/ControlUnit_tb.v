@@ -31,3 +31,17 @@ module ControlUnit_tb;
                  $time, Op, RegDst, ALUSrc, RegWrite, ALUControl);
     end
 endmodule
+
+/*
+Time        Op            RegDst     ALUSrc     RegWrite   ALUControl
+ 0          0000          1          0          1          0010
+10          0001          1          0          1          0110
+20          0010          1          0          1          0000
+30          0011          1          0          1          0001
+40          0100          1          0          1          1100
+50          0101          1          0          1          1101
+60          0110          1          0          1          0111
+70          0111          0          1          1          0010
+80          1000          0          0          0          0000
+testbenches/ControlUnit_tb.v:25: $finish called at 90 (1s)
+*/

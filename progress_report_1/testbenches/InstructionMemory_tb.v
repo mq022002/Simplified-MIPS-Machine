@@ -26,3 +26,18 @@ module InstructionMemory_tb;
         $finish;
     end
 endmodule
+
+/*
+Time        Address       Instruction
+ 0          0000          710f
+10          0002          7207
+20          0004          26c0
+30          0006          1780
+40          0008          3b80
+50          000a          0bc0
+60          000c          4b40
+70          000e          6e40
+80          0010          6b40
+testbenches/InstructionMemory_tb.v:26: $finish called at 90 (1s)
+90          0012          ffff
+*/
