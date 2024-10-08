@@ -48,7 +48,6 @@ module ALU (
     end
 
     assign Zero = (ALUOut == 16'b0);
-
 endmodule
 
 // Author(s): Abbie Mathew
