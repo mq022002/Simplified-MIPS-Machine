@@ -1,17 +1,28 @@
 // Author(s): Matthew Quijano
+// Instruction Memory Testbench (InstructionMemory_tb): This testbench simulates the 
+// InstructionMemory module by providing different memory addresses and displaying the 
+// corresponding instruction values.
+
 module InstructionMemory_tb;
+
+    // Register to hold the address input for fetching an instruction
     reg [15:0] Address;
+
+    // Wire to capture the 16-bit instruction output from the InstructionMemory
     wire [15:0] Instruction;
 
+    // Instantiate the InstructionMemory module for testing
     InstructionMemory uut (
         .Address(Address),
         .Instruction(Instruction)
     );
 
+    // Test sequence to apply different addresses and display the corresponding instruction
     initial begin
         $display("Time        Address       Instruction");
         $monitor("%2t          %h          %h", $time, Address, Instruction);
 
+        // Apply different addresses to test the InstructionMemory's response
         Address = 16'h0000;
         #10 Address = 16'h0002;
         #10 Address = 16'h0004;
@@ -22,7 +33,8 @@ module InstructionMemory_tb;
         #10 Address = 16'h000E;
         #10 Address = 16'h0010;
         #10 Address = 16'h0012;
-        
+
+        // End the test
         $finish;
     end
 endmodule

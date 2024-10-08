@@ -1,8 +1,17 @@
 // Author(s): Joey Conroy, Abbie Mathew
-module CPU_tb;
-    reg clock;
-    wire signed[15:0] ALUOut, IR, PC;
+// CPU Testbench (CPU_tb): This is a testbench for the CPU module. It simulates the 
+// operation of the CPU by providing a clock signal and monitoring the values of 
+// the program counter (PC), instruction register (IR), and the output of the ALU.
 
+module CPU_tb;
+
+    // Register for the clock signal
+    reg clock;
+
+    // Wires to capture the output from the CPU: ALUOut, IR (Instruction Register), and PC (Program Counter)
+    wire signed [15:0] ALUOut, IR, PC;
+
+    // Instantiate the CPU module for testing
     CPU test_cpu(
         .clock(clock),
         .PC(PC),
@@ -10,8 +19,10 @@ module CPU_tb;
         .IR(IR)
     );
 
+    // Generate the clock signal: toggle the clock every 1 unit of time
     always #1 clock = ~clock;
 
+    // Test sequence: display and monitor values, start the simulation, and stop it after 34 time units
     initial begin
         $display("Clock PC   IR                 WD");
         $monitor("%b     %2d   %b  %d (%b)", clock, PC, IR, ALUOut, ALUOut);

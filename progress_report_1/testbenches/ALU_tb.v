@@ -1,10 +1,22 @@
 // Author(s): Abbie Mathew
+// ALU Testbench (ALU_tb): This testbench is designed to simulate the ALU module by providing 
+// various control signals and inputs, then displaying the results of ALU operations.
+
 module ALU_tb;
+
+    // Register to hold the ALUControl signal, which determines the ALU operation
     reg [3:0] ALUControl;
+
+    // Registers to hold the signed 16-bit input values for the ALU
     reg signed [15:0] A, B;
+
+    // Wire to capture the 16-bit signed output result from the ALU
     wire signed [15:0] ALUOut;
+
+    // Wire to capture the Zero flag output from the ALU
     wire Zero;
 
+    // Instantiate the ALU module for testing
     ALU uut (
         .ALUControl(ALUControl),
         .A(A),
@@ -13,10 +25,12 @@ module ALU_tb;
         .Zero(Zero)
     );
 
+    // Test sequence to apply different control signals and inputs to the ALU
     initial begin
         $display("op   a                     b                     result                zero");
-        $monitor ("%b %b(%2d)  %b(%2d)  %b(%2d)  %b",ALUControl,A,A,B,B,ALUOut,ALUOut,Zero);
-        
+        $monitor ("%b %b(%2d)  %b(%2d)  %b(%2d)  %b", ALUControl, A, A, B, B, ALUOut, ALUOut, Zero);
+
+        // Apply different ALUControl values and inputs A, B for testing various ALU operations
         ALUControl = 4'b0000; A = 16'b0111; B = 16'b0001;
         #1 ALUControl = 4'b0001; A = 16'b0101; B = 16'b0010;
         #1 ALUControl = 4'b0010; A = 16'b0100; B = 16'b0010;
@@ -27,7 +41,8 @@ module ALU_tb;
         #1 ALUControl = 4'b0111; A = 16'b1110; B = 16'b1111;
         #1 ALUControl = 4'b1100; A = 16'b0101; B = 16'b0010;
         #1 ALUControl = 4'b1101; A = 16'b0101; B = 16'b0010;
-        
+
+        // End the test
         $finish;
     end
 endmodule
