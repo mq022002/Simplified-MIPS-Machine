@@ -1,4 +1,4 @@
-// Author(s): Matthew Quijano
+// Author(s): Abbie Mathew
 // InstructionMemory Module: This stores a set of instructions, each 16 bits wide. 
 // It takes an address and outputs the corresponding instruction from memory.
 
