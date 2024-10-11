@@ -1,14 +1,14 @@
 // Author(s): Joey Conroy, Abbie Mathew
-// CPU Testbench (CPU_tb): This is a testbench for the CPU module. It simulates the 
-// operation of the CPU by providing a clock signal and monitoring the values of 
-// the program counter (PC), instruction register (IR), and the output of the ALU.
+// CPU Testbench (CPU_tb): This testbench simulates the CPU by generating a clock signal 
+// and monitoring the Program Counter (PC), Instruction Register (IR), and ALU output (ALUOut). 
+// The test runs until the halt instruction (0xFFFF) is encountered, at which point it stops.
 
 module CPU_tb;
 
-    // Register for the clock signal
+    // Register to hold the clock signal
     reg clock;
 
-    // Wires to capture the output from the CPU: ALUOut, IR (Instruction Register), and PC (Program Counter)
+    // Wires to capture the outputs from the CPU: ALUOut, IR (Instruction Register), and PC (Program Counter)
     wire signed [15:0] ALUOut, IR, PC;
 
     // Instantiate the CPU module for testing
@@ -19,15 +19,30 @@ module CPU_tb;
         .IR(IR)
     );
 
-    // Generate the clock signal: toggle the clock every 1 unit of time
+    // Generate the clock signal: toggle the clock every 1 time unit
     always #1 clock = ~clock;
 
-    // Test sequence: display and monitor values, start the simulation, and stop it after 34 time units
+    // Test sequence: initialize the clock, monitor the outputs, and stop when the halt instruction is encountered
     initial begin
-        $display("Clock PC   IR                 WD");
+        $display("Clock PC   IR                    WD");
         $monitor("%b     %2d   %b  %d (%b)", clock, PC, IR, ALUOut, ALUOut);
+
+        // Initialize the clock signal
         clock = 1;
-        #34 $finish;
+
+        // Wait for 2 time units before starting the CPU
+        #2;
+
+        // Loop until the halt instruction (0xFFFF) is fetched
+        while (IR != 16'hFFFF) begin
+            #2; 
+        end
+
+        // Halt the CPU and display the message when the halt instruction is encountered
+        $display("CPU halted.");
+
+        // End the test
+        $finish;
     end
 endmodule
 
@@ -51,22 +66,7 @@ Clock PC   IR                 WD
 0     16   0110101101000000       1 (0000000000000001)
 1     16   0110101101000000       1 (0000000000000001)
 0     18   1111111111111111      22 (0000000000010110)
+CPU halted.
+testbenches/CPU_tb.v:45: $finish called at 18 (1s)
 1     18   1111111111111111      22 (0000000000010110)
-0     20   xxxxxxxxxxxxxxxx       x (xxxxxxxxxxxxxxxx)
-1     20   xxxxxxxxxxxxxxxx       x (xxxxxxxxxxxxxxxx)
-0     20   xxxxxxxxxxxxxxxx       x (xxxxxxxxxxxxxxxx)
-1     20   xxxxxxxxxxxxxxxx       x (xxxxxxxxxxxxxxxx)
-0     20   xxxxxxxxxxxxxxxx       x (xxxxxxxxxxxxxxxx)
-1     20   xxxxxxxxxxxxxxxx       x (xxxxxxxxxxxxxxxx)
-0     20   xxxxxxxxxxxxxxxx       x (xxxxxxxxxxxxxxxx)
-1     20   xxxxxxxxxxxxxxxx       x (xxxxxxxxxxxxxxxx)
-0     20   xxxxxxxxxxxxxxxx       x (xxxxxxxxxxxxxxxx)
-1     20   xxxxxxxxxxxxxxxx       x (xxxxxxxxxxxxxxxx)
-0     20   xxxxxxxxxxxxxxxx       x (xxxxxxxxxxxxxxxx)
-1     20   xxxxxxxxxxxxxxxx       x (xxxxxxxxxxxxxxxx)
-0     20   xxxxxxxxxxxxxxxx       x (xxxxxxxxxxxxxxxx)
-1     20   xxxxxxxxxxxxxxxx       x (xxxxxxxxxxxxxxxx)
-0     20   xxxxxxxxxxxxxxxx       x (xxxxxxxxxxxxxxxx)
-testbenches/CPU_tb.v:19: $finish called at 34 (1s)
-1     20   xxxxxxxxxxxxxxxx       x (xxxxxxxxxxxxxxxx)
 */

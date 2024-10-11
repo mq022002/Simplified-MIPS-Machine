@@ -279,7 +279,7 @@ endmodule
 // START OF CPU_tb.v
 module CPU_tb;
     reg clock;
-    wire signed[15:0] ALUOut, IR, PC;
+    wire signed [15:0] ALUOut, IR, PC;
 
     CPU test_cpu(
         .clock(clock),
@@ -291,10 +291,15 @@ module CPU_tb;
     always #1 clock = ~clock;
 
     initial begin
-        $display("Clock PC   IR                 WD");
+        $display("Clock PC   IR                    WD");
         $monitor("%b     %2d   %b  %d (%b)", clock, PC, IR, ALUOut, ALUOut);
         clock = 1;
-        #34 $finish;
+        #2;
+        while (IR != 16'hFFFF) begin
+            #2; 
+        end
+        $display("CPU halted.");
+        $finish;
     end
 endmodule
 // END OF CPU_tb.v
