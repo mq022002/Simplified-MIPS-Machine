@@ -1,53 +1,75 @@
 // Author(s): Abbie Mathew
-module ALU (
-    input [3:0] ALUControl,
-    input [15:0] A, B,
-    output reg signed [15:0] ALUOut,
-    output Zero
-);
-    wire [15:0] AndResult, OrResult, Sum, NorResult, NandResult, B_in;
-    wire CarryOut, Binvert, Less;
+module ALU (op, a, b, result, zero);
+    input [3:0] op;
+    input [15:0] a, b;
+    output [15:0] result;
+    output zero;
 
-    assign Binvert = (ALUControl == 4'b0110) || (ALUControl == 4'b0111);
-    assign B_in = Binvert ? ~B : B;
+    wire [15:0] carry;
+    wire set;
 
-    genvar i;
-    generate
-        for (i = 0; i < 16; i = i + 1) begin
-            and (AndResult[i], A[i], B[i]);
-            or (OrResult[i], A[i], B[i]);
-            nor (NorResult[i], A[i], B[i]);
-            nand (NandResult[i], A[i], B[i]);
-        end
-    endgenerate
+    ALU1 alu0 (a[0], b[0], op[3], op[2], op[1:0], set, op[2], carry[0], result[0]);
+    ALU1 alu1 (a[1], b[1], op[3], op[2], op[1:0], 1'b0, carry[0], carry[1], result[1]);
+    ALU1 alu2 (a[2], b[2], op[3], op[2], op[1:0], 1'b0, carry[1], carry[2], result[2]);
+    ALU1 alu3 (a[3], b[3], op[3], op[2], op[1:0], 1'b0, carry[2], carry[3], result[3]);
+    ALU1 alu4 (a[4], b[4], op[3], op[2], op[1:0], 1'b0, carry[3], carry[4], result[4]);
+    ALU1 alu5 (a[5], b[5], op[3], op[2], op[1:0], 1'b0, carry[4], carry[5], result[5]);
+    ALU1 alu6 (a[6], b[6], op[3], op[2], op[1:0], 1'b0, carry[5], carry[6], result[6]);
+    ALU1 alu7 (a[7], b[7], op[3], op[2], op[1:0], 1'b0, carry[6], carry[7], result[7]);
+    ALU1 alu8 (a[8], b[8], op[3], op[2], op[1:0], 1'b0, carry[7], carry[8], result[8]);
+    ALU1 alu9 (a[9], b[9], op[3], op[2], op[1:0], 1'b0, carry[8], carry[9], result[9]);
+    ALU1 alu10 (a[10], b[10], op[3], op[2], op[1:0], 1'b0, carry[9], carry[10], result[10]);
+    ALU1 alu11 (a[11], b[11], op[3], op[2], op[1:0], 1'b0, carry[10], carry[11], result[11]);
+    ALU1 alu12 (a[12], b[12], op[3], op[2], op[1:0], 1'b0, carry[11], carry[12], result[12]);
+    ALU1 alu13 (a[13], b[13], op[3], op[2], op[1:0], 1'b0, carry[12], carry[13], result[13]);
+    ALU1 alu14 (a[14], b[14], op[3], op[2], op[1:0], 1'b0, carry[13], carry[14], result[14]);
+    ALUmsb alu15 (a[15], b[15], op[3], op[2], op[1:0], 1'b0, carry[14], carry[15], result[15], set);
 
-    wire [15:0] Carry;
-    assign Sum[0] = A[0] ^ B_in[0] ^ Binvert;
-    assign Carry[0] = (A[0] & B_in[0]) | (A[0] & Binvert) | (B_in[0] & Binvert);
+    nor nor1(zero, result[0], result[1], result[2], result[3], result[4], result[5], result[6], result[7], 
+             result[8], result[9], result[10], result[11], result[12], result[13], result[14], result[15]);
+endmodule
 
-    generate
-        for (i = 1; i < 16; i = i + 1) begin
-            assign Sum[i] = A[i] ^ B_in[i] ^ Carry[i-1];
-            assign Carry[i] = (A[i] & B_in[i]) | (A[i] & Carry[i-1]) | (B_in[i] & Carry[i-1]);
-        end
-    endgenerate
+// Author(s): Abbie Mathew
+module ALU1 (a, b, ainvert, binvert, op, less, carryin, carryout, result);
+    input a, b, less, carryin, ainvert, binvert;
+    input [1:0] op;
+    output carryout, result;
 
-    assign Less = (Sum[15] == 1) ? 1 : 0;
+    wire a1, b1, a_and_b, a_or_b, sum, c1, c2;
 
-    always @(*) begin
-        case (ALUControl)
-            4'b0000: ALUOut = AndResult;
-            4'b0001: ALUOut = OrResult;
-            4'b0010: ALUOut = Sum;
-            4'b0110: ALUOut = Sum;
-            4'b0111: ALUOut = (Less) ? 16'b1 : 16'b0;
-            4'b1100: ALUOut = NorResult;
-            4'b1101: ALUOut = NandResult;
-            default: ALUOut = 16'b0;
-        endcase
-    end
+    assign a1 = ainvert ? ~a : a;
+    assign b1 = binvert ? ~b : b;
+    assign a_and_b = a1 & b1;
+    assign a_or_b = a1 | b1;
+    assign sum = a1 ^ b1 ^ carryin;
+    assign c1 = a1 & b1;
+    assign c2 = (a1 ^ b1) & carryin;
+    assign carryout = c1 | c2;
 
-    assign Zero = (ALUOut == 16'b0);
+    assign result = (op == 2'b00) ? a_and_b : 
+                    (op == 2'b01) ? a_or_b : 
+                    (op == 2'b10) ? sum : 
+                    less;
+endmodule
+
+// Author(s): Abbie Mathew
+module ALUmsb (a, b, ainvert, binvert, op, less, carryin, carryout, result, sum);
+    input a, b, less, carryin, ainvert, binvert;
+    input [1:0] op;
+    output carryout, result, sum;
+
+    wire a1, b1, a_and_b, a_or_b;
+    assign a1 = ainvert ? ~a : a;
+    assign b1 = binvert ? ~b : b;
+    assign a_and_b = a1 & b1;
+    assign a_or_b = a1 | b1;
+    assign sum = a1 ^ b1 ^ carryin;
+    assign carryout = (a1 & b1) | ((a1 ^ b1) & carryin);
+
+    assign result = (op == 2'b00) ? a_and_b : 
+                    (op == 2'b01) ? a_or_b : 
+                    (op == 2'b10) ? sum : 
+                    less;
 endmodule
 
 // Author(s): Abbie Mathew
@@ -213,19 +235,19 @@ module CPU (
     assign B = (ALUSrc) ? SignExtend : RD2;
 
     ALU ex(
-        .ALUControl(ALUControl),
-        .A(A),
-        .B(B),
-        .ALUOut(ALUOut),
-        .Zero(Zero)
+        .op(ALUControl),
+        .a(A),
+        .b(B),
+        .result(ALUOut),
+        .zero(Zero)
     );
 
     ALU fetch(
-        .ALUControl(4'b0010),
-        .A(PC_reg),
-        .B(16'd2),
-        .ALUOut(NextPC),
-        .Zero()
+        .op(4'b0010),
+        .a(PC_reg),
+        .b(16'd2),
+        .result(NextPC),
+        .zero()
     );
 
     always @(negedge clock) begin
