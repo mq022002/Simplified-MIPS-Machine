@@ -1,4 +1,4 @@
-// Author(s): Abbie Mathew
+// Author(s): Joey Conroy, Abbie Mathew, Matthew Quijano
 // ALU Module: This is the main Arithmetic Logic Unit (ALU) that performs arithmetic and logic 
 // operations on two 16-bit inputs (a and b) based on the operation code (op). It outputs the 
 // result of the operation and a zero flag indicating if the result is zero.
@@ -47,7 +47,7 @@ module ALU (op, a, b, result, zero);
 
 endmodule
 
-// Author(s): Abbie Matthew, Joey Conroy
+// Author(s): Joey Conroy, Abbie Mathew, Matthew Quijano
 // ALU1 Module: 1-bit ALU that performs operations such as AND, OR, addition, and set-less-than.
 // It takes 1-bit inputs and control signals, and produces a 1-bit result and carry-out.
 
@@ -85,7 +85,7 @@ module ALU1 (a, b, ainvert, binvert, op, less, carryin, carryout, result);
 
 endmodule
 
-// Author(s): Joey Conroy, Abbie Mathew
+// Author(s): Joey Conroy, Abbie Mathew, Matthew Quijano
 // ALUmsb Module: This handles the most significant bit (MSB) of the ALU and includes the logic 
 // for set-less-than. It is similar to the ALU1 module but has additional logic for the MSB.
 
