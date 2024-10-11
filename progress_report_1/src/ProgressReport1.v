@@ -23,7 +23,7 @@ module ALU (op, a, b, result, zero);
     ALU1 alu12 (a[12], b[12], op[3], op[2], op[1:0], 1'b0, carry[11], carry[12], result[12]);
     ALU1 alu13 (a[13], b[13], op[3], op[2], op[1:0], 1'b0, carry[12], carry[13], result[13]);
     ALU1 alu14 (a[14], b[14], op[3], op[2], op[1:0], 1'b0, carry[13], carry[14], result[14]);
-    ALUmsb alu15 (a[15], b[15], op[3], op[2], op[1:0], 1'b0, carry[14], carry[15], result[15], set);
+    ALUMSB alu15 (a[15], b[15], op[3], op[2], op[1:0], 1'b0, carry[14], carry[15], result[15], set);
 
     nor nor1(zero, result[0], result[1], result[2], result[3], result[4], result[5], result[6], result[7], 
              result[8], result[9], result[10], result[11], result[12], result[13], result[14], result[15]);
@@ -39,8 +39,8 @@ module ALU1 (a, b, ainvert, binvert, op, less, carryin, carryout, result);
 
     not (not_a, a);
     not (not_b, b);
-    mux2to1 mux_a(a, not_a, ainvert, a1);
-    mux2to1 mux_b(b, not_b, binvert, b1);
+    Mux2to1 mux_a(a, not_a, ainvert, a1);
+    Mux2to1 mux_b(b, not_b, binvert, b1);
 
     and (a_and_b, a1, b1);
     or  (a_or_b, a1, b1);
@@ -50,10 +50,10 @@ module ALU1 (a, b, ainvert, binvert, op, less, carryin, carryout, result);
     and (c2, a1 ^ b1, carryin);
     or  (carryout, c1, c2);
 
-    mux4to1 mux1 (a_and_b, a_or_b, sum, less, op, result);
+    Mux4to1 mux1 (a_and_b, a_or_b, sum, less, op, result);
 endmodule
 
-module ALUmsb (a, b, ainvert, binvert, op, less, carryin, carryout, result, sum);
+module ALUMSB (a, b, ainvert, binvert, op, less, carryin, carryout, result, sum);
     input a, b, less, carryin, ainvert, binvert;
     input [1:0] op;
     output carryout, result, sum;
@@ -63,8 +63,8 @@ module ALUmsb (a, b, ainvert, binvert, op, less, carryin, carryout, result, sum)
 
     not (not_a, a);
     not (not_b, b);
-    mux2to1 mux_a(a, not_a, ainvert, a1);
-    mux2to1 mux_b(b, not_b, binvert, b1);
+    Mux2to1 mux_a(a, not_a, ainvert, a1);
+    Mux2to1 mux_b(b, not_b, binvert, b1);
 
     and (a_and_b, a1, b1);
     or  (a_or_b, a1, b1);
@@ -72,14 +72,14 @@ module ALUmsb (a, b, ainvert, binvert, op, less, carryin, carryout, result, sum)
     xor (sum, a1, b1, carryin);
     and (carryout, a1 & b1, (a1 ^ b1) & carryin);
 
-    mux4to1 mux2 (a_and_b, a_or_b, sum, less, op, result);
+    Mux4to1 mux2 (a_and_b, a_or_b, sum, less, op, result);
 endmodule
 
-module mux2to1(input a, input b, input sel, output y);
+module Mux2to1(input a, input b, input sel, output y);
     assign y = sel ? b : a;
 endmodule
 
-module mux4to1(input in0, input in1, input in2, input in3, input [1:0] sel, output y);
+module Mux4to1(input in0, input in1, input in2, input in3, input [1:0] sel, output y);
     assign y = (sel == 2'b00) ? in0 :
                (sel == 2'b01) ? in1 :
                (sel == 2'b10) ? in2 : in3;
