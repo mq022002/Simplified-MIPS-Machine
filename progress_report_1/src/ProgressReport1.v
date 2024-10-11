@@ -1,4 +1,4 @@
-// Author(s): Abbie Mathew
+// START OF ALU.v
 module ALU (op, a, b, result, zero);
     input [3:0] op;
     input [15:0] a, b;
@@ -29,50 +29,64 @@ module ALU (op, a, b, result, zero);
              result[8], result[9], result[10], result[11], result[12], result[13], result[14], result[15]);
 endmodule
 
-// Author(s): Abbie Mathew
 module ALU1 (a, b, ainvert, binvert, op, less, carryin, carryout, result);
     input a, b, less, carryin, ainvert, binvert;
     input [1:0] op;
     output carryout, result;
 
     wire a1, b1, a_and_b, a_or_b, sum, c1, c2;
+    wire not_a, not_b;
 
-    assign a1 = ainvert ? ~a : a;
-    assign b1 = binvert ? ~b : b;
-    assign a_and_b = a1 & b1;
-    assign a_or_b = a1 | b1;
-    assign sum = a1 ^ b1 ^ carryin;
-    assign c1 = a1 & b1;
-    assign c2 = (a1 ^ b1) & carryin;
-    assign carryout = c1 | c2;
+    not (not_a, a);
+    not (not_b, b);
+    mux2to1 mux_a(a, not_a, ainvert, a1);
+    mux2to1 mux_b(b, not_b, binvert, b1);
 
-    assign result = (op == 2'b00) ? a_and_b : 
-                    (op == 2'b01) ? a_or_b : 
-                    (op == 2'b10) ? sum : 
-                    less;
+    and (a_and_b, a1, b1);
+    or  (a_or_b, a1, b1);
+
+    xor (sum, a1, b1, carryin);
+    and (c1, a1, b1);
+    and (c2, a1 ^ b1, carryin);
+    or  (carryout, c1, c2);
+
+    mux4to1 mux1 (a_and_b, a_or_b, sum, less, op, result);
 endmodule
 
-// Author(s): Abbie Mathew
 module ALUmsb (a, b, ainvert, binvert, op, less, carryin, carryout, result, sum);
     input a, b, less, carryin, ainvert, binvert;
     input [1:0] op;
     output carryout, result, sum;
 
     wire a1, b1, a_and_b, a_or_b;
-    assign a1 = ainvert ? ~a : a;
-    assign b1 = binvert ? ~b : b;
-    assign a_and_b = a1 & b1;
-    assign a_or_b = a1 | b1;
-    assign sum = a1 ^ b1 ^ carryin;
-    assign carryout = (a1 & b1) | ((a1 ^ b1) & carryin);
+    wire not_a, not_b;
 
-    assign result = (op == 2'b00) ? a_and_b : 
-                    (op == 2'b01) ? a_or_b : 
-                    (op == 2'b10) ? sum : 
-                    less;
+    not (not_a, a);
+    not (not_b, b);
+    mux2to1 mux_a(a, not_a, ainvert, a1);
+    mux2to1 mux_b(b, not_b, binvert, b1);
+
+    and (a_and_b, a1, b1);
+    or  (a_or_b, a1, b1);
+
+    xor (sum, a1, b1, carryin);
+    and (carryout, a1 & b1, (a1 ^ b1) & carryin);
+
+    mux4to1 mux2 (a_and_b, a_or_b, sum, less, op, result);
 endmodule
 
-// Author(s): Abbie Mathew
+module mux2to1(input a, input b, input sel, output y);
+    assign y = sel ? b : a;
+endmodule
+
+module mux4to1(input in0, input in1, input in2, input in3, input [1:0] sel, output y);
+    assign y = (sel == 2'b00) ? in0 :
+               (sel == 2'b01) ? in1 :
+               (sel == 2'b10) ? in2 : in3;
+endmodule
+// END OF ALU.v
+
+// START OF RegisterFile.v
 module RegisterFile (
     input [1:0] RR1, RR2, WR,
     input [15:0] WD,
@@ -93,8 +107,9 @@ module RegisterFile (
         if (RegWrite == 1 && WR != 0)
             Regs[WR] <= WD;
 endmodule
+// END OF RegisterFile.v
 
-// Author(s): Joey Conroy, Abbie Mathew
+// START OF InstructionMemory.v
 module InstructionMemory (
     input [15:0] Address,
     output [15:0] Instruction
@@ -115,8 +130,9 @@ module InstructionMemory (
         IMemory[9] = 16'hFFFF;
     end
 endmodule
+// END OF InstructionMemory.v
 
-// Author(s): Matthew Quijano
+// START OF ControlUnit.v
 module ControlUnit (
     input [3:0] Op,
     output reg RegDst,
@@ -182,8 +198,9 @@ module ControlUnit (
             end
         endcase
 endmodule
+// END OF ControlUnit.v
 
-// Author(s): Joey Conroy, Abbie Mathew
+// START OF CPU.v
 module CPU (
     input clock,
     output [15:0] PC,
@@ -257,8 +274,9 @@ module CPU (
             PC_reg <= NextPC;
     end
 endmodule
+// END OF CPU.v
 
-// Author(s): Joey Conroy, Abbie Mathew
+// START OF CPU_tb.v
 module CPU_tb;
     reg clock;
     wire signed[15:0] ALUOut, IR, PC;
@@ -279,3 +297,4 @@ module CPU_tb;
         #34 $finish;
     end
 endmodule
+// END OF CPU_tb.v
