@@ -19,6 +19,7 @@ REGISTER_FILE = RegisterFile.v
 INSTRUCTION_MEMORY = InstructionMemory.v
 CONTROL_UNIT = ControlUnit.v
 CPU = CPU.v
+PROGRESS_REPORT1 = ProgressReport1.v
 
 ALU_TB = ALU_tb.v
 REGISTER_FILE_TB = RegisterFile_tb.v
@@ -31,6 +32,7 @@ REGISTER_FILE_TB_OUT = $(OUT_DIR)/RegisterFile_tb.out
 INSTRUCTION_MEMORY_TB_OUT = $(OUT_DIR)/InstructionMemory_tb.out
 CONTROL_UNIT_TB_OUT = $(OUT_DIR)/ControlUnit_tb.out
 CPU_TB_OUT = $(OUT_DIR)/CPU_tb.out
+PROGRESS_REPORT1_OUT = $(OUT_DIR)/ProgressReport1.out
 
 compile_and_run_ALU_tb:
 	$(IVERILOG) -o $(ALU_TB_OUT) $(SRC_DIR)/$(ALU) $(TB_DIR)/$(ALU_TB)
@@ -51,6 +53,10 @@ compile_and_run_ControlUnit_tb:
 compile_and_run_CPU_tb:
 	$(IVERILOG) -o $(CPU_TB_OUT) $(SRC_DIR)/$(ALU) $(SRC_DIR)/$(REGISTER_FILE) $(SRC_DIR)/$(INSTRUCTION_MEMORY) $(SRC_DIR)/$(CONTROL_UNIT) $(SRC_DIR)/$(CPU) $(TB_DIR)/$(CPU_TB)
 	$(VVP) $(CPU_TB_OUT)
+
+compile_and_run_ProgressReport1:
+	$(IVERILOG) -o $(PROGRESS_REPORT1_OUT) $(SRC_DIR)/$(PROGRESS_REPORT1)
+	$(VVP) $(PROGRESS_REPORT1_OUT)
 
 all: compile_and_run_ALU_tb compile_and_run_RegisterFile_tb compile_and_run_InstructionMemory_tb compile_and_run_ControlUnit_tb compile_and_run_CPU_tb
 
