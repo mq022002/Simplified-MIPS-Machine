@@ -66,12 +66,17 @@ module ALUmsb (a, b, ainvert, binvert, op, less, carryin, carryout, result, sum)
 endmodule
 
 // Author(s): Joey Conroy, Abbie Mathew, Matthew Quijano
-module Mux2To1(input a, input b, input sel, output y);
-    wire sel_n, a_and_sel_n, b_and_sel;
-    not (sel_n, sel);
-    and (a_and_sel_n, a, sel_n);
-    and (b_and_sel, b, sel);
-    or  (y, a_and_sel_n, b_and_sel);
+module Mux2To1 #(parameter N = 1) (input [N-1:0] a, input [N-1:0] b, input sel, output [N-1:0] y);
+    genvar i;
+    generate
+        for (i = 0; i < N; i = i + 1) begin: mux_loop
+            wire sel_n, a_and_sel_n, b_and_sel;
+            not (sel_n, sel);
+            and (a_and_sel_n, a[i], sel_n);
+            and (b_and_sel, b[i], sel);
+            or  (y[i], a_and_sel_n, b_and_sel);
+        end
+    endgenerate
 endmodule
 
 // Author(s): Joey Conroy, Abbie Mathew, Matthew Quijano
@@ -223,16 +228,8 @@ module CPU (
     ControlUnit MainCtr(.Op(IR[15:12]), .RegDst(RegDst), .ALUSrc(ALUSrc), .RegWrite(RegWrite), .ALUControl(ALUControl));
     RegisterFile rf(.RR1(IR[11:10]), .RR2(IR[9:8]), .WR(WR), .WD(ALUOut), .RegWrite(RegWrite), .clock(clock), .RD1(A), .RD2(RD2));
     assign SignExtend = {{8{IR[7]}}, IR[7:0]};
-    wire [1:0] not_RegDst, RegDst_and_IR76, not_RegDst_and_IR98;
-    assign not_RegDst = ~{2{RegDst}};
-    assign RegDst_and_IR76 = {2{RegDst}} & IR[7:6];
-    assign not_RegDst_and_IR98 = not_RegDst & IR[9:8];
-    assign WR = RegDst_and_IR76 | not_RegDst_and_IR98;
-    wire [15:0] not_ALUSrc, ALUSrc_and_SignExtend, not_ALUSrc_and_RD2;
-    assign not_ALUSrc = ~{16{ALUSrc}};
-    assign ALUSrc_and_SignExtend = {16{ALUSrc}} & SignExtend;
-    assign not_ALUSrc_and_RD2 = not_ALUSrc & RD2;
-    assign B = ALUSrc_and_SignExtend | not_ALUSrc_and_RD2;
+    Mux2To1 #(2) RegDstMux (.a(IR[9:8]), .b(IR[7:6]), .sel(RegDst), .y(WR));
+    Mux2To1 #(16) ALUSrcMux (.a(RD2), .b(SignExtend), .sel(ALUSrc), .y(B));
     ALU ex(.op(ALUControl), .a(A), .b(B), .result(ALUOut), .zero(Zero));
     ALU fetch(.op(4'b0010), .a(PC_reg), .b(16'd2), .result(NextPC), .zero());
     always @(negedge clock) begin
