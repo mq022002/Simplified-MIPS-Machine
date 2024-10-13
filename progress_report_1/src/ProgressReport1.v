@@ -224,7 +224,11 @@ module CPU (
     RegisterFile rf(.RR1(IR[11:10]), .RR2(IR[9:8]), .WR(WR), .WD(ALUOut), .RegWrite(RegWrite), .clock(clock), .RD1(A), .RD2(RD2));
     assign SignExtend = {{8{IR[7]}}, IR[7:0]};
     assign WR = (RegDst) ? IR[7:6] : IR[9:8];
-    assign B = (ALUSrc) ? SignExtend : RD2;
+    wire [15:0] not_ALUSrc, ALUSrc_and_SignExtend, not_ALUSrc_and_RD2;
+    assign not_ALUSrc = ~{16{ALUSrc}};
+    assign ALUSrc_and_SignExtend = {16{ALUSrc}} & SignExtend;
+    assign not_ALUSrc_and_RD2 = not_ALUSrc & RD2;
+    assign B = ALUSrc_and_SignExtend | not_ALUSrc_and_RD2;
     ALU ex(.op(ALUControl), .a(A), .b(B), .result(ALUOut), .zero(Zero));
     ALU fetch(.op(4'b0010), .a(PC_reg), .b(16'd2), .result(NextPC), .zero());
     always @(negedge clock) begin
