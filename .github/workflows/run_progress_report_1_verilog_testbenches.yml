@@ -15,22 +15,6 @@ jobs:
       - name: Install Icarus Verilog
         run: sudo apt-get update && sudo apt-get install -y iverilog
 
-      - name: Run ALU Testbench
-        run: make compile_and_run_ALU_tb
-        working-directory: progress_report_1
-
-      - name: Run RegisterFile Testbench
-        run: make compile_and_run_RegisterFile_tb
-        working-directory: progress_report_1
-
-      - name: Run InstructionMemory Testbench
-        run: make compile_and_run_InstructionMemory_tb
-        working-directory: progress_report_1
-
-      - name: Run ControlUnit Testbench
-        run: make compile_and_run_ControlUnit_tb
-        working-directory: progress_report_1
-
-      - name: Run CPU Testbench
-        run: make compile_and_run_CPU_tb
+      - name: Run ProgressReport1
+        run: make compile_and_run_ProgressReport1
         working-directory: progress_report_1

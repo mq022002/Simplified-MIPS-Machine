@@ -67,8 +67,8 @@ module ALU1 (a, b, ainvert, binvert, op, less, carryin, carryout, result);
     // Invert inputs if required
     not (not_a, a);
     not (not_b, b);
-    mux2to1 mux_a(a, not_a, ainvert, a1);
-    mux2to1 mux_b(b, not_b, binvert, b1);
+    Mux2To1 mux_a(a, not_a, ainvert, a1);
+    Mux2To1 mux_b(b, not_b, binvert, b1);
 
     // AND and OR operations
     and (a_and_b, a1, b1);
@@ -81,7 +81,7 @@ module ALU1 (a, b, ainvert, binvert, op, less, carryin, carryout, result);
     or  (carryout, c1, c2);
 
     // Select the final result based on the operation
-    mux4to1 mux1 (a_and_b, a_or_b, sum, less, op, result);
+    Mux4To1 mux1 (a_and_b, a_or_b, sum, less, op, result);
 
 endmodule
 
@@ -105,8 +105,8 @@ module ALUmsb (a, b, ainvert, binvert, op, less, carryin, carryout, result, sum)
     // Invert inputs if required
     not (not_a, a);
     not (not_b, b);
-    mux2to1 mux_a(a, not_a, ainvert, a1);
-    mux2to1 mux_b(b, not_b, binvert, b1);
+    Mux2To1 mux_a(a, not_a, ainvert, a1);
+    Mux2To1 mux_b(b, not_b, binvert, b1);
 
     // AND and OR operations
     and (a_and_b, a1, b1);
@@ -117,24 +117,33 @@ module ALUmsb (a, b, ainvert, binvert, op, less, carryin, carryout, result, sum)
     and (carryout, a1 & b1, (a1 ^ b1) & carryin);
 
     // Select the final result based on the operation
-    mux4to1 mux2 (a_and_b, a_or_b, sum, less, op, result);
+    Mux4To1 mux2 (a_and_b, a_or_b, sum, less, op, result);
 
 endmodule
 
 // 2-to-1 Multiplexer: Selects between two inputs based on the selection signal.
 
-module mux2to1(input a, input b, input sel, output y);
+module Mux2To1(input a, input b, input sel, output y);
 
-    assign y = sel ? b : a;
+    wire sel_n, a_and_sel_n, b_and_sel;
+    not (sel_n, sel);
+    and (a_and_sel_n, a, sel_n);
+    and (b_and_sel, b, sel);
+    or  (y, a_and_sel_n, b_and_sel);
 
 endmodule
 
 // 4-to-1 Multiplexer: Selects between four inputs based on a 2-bit selection signal.
 
-module mux4to1(input in0, input in1, input in2, input in3, input [1:0] sel, output y);
+module Mux4To1(input in0, input in1, input in2, input in3, input [1:0] sel, output y);
 
-    assign y = (sel == 2'b00) ? in0 :
-               (sel == 2'b01) ? in1 :
-               (sel == 2'b10) ? in2 : in3;
+    wire sel0_n, sel1_n, and0, and1, and2, and3;
+    not (sel0_n, sel[0]);
+    not (sel1_n, sel[1]);
+    and (and0, in0, sel1_n, sel0_n);
+    and (and1, in1, sel1_n, sel[0]);
+    and (and2, in2, sel[1], sel0_n);
+    and (and3, in3, sel[1], sel[0]);
+    or (y, and0, and1, and2, and3);
 
 endmodule
