@@ -245,7 +245,7 @@ endmodule
 
 // === START OF TESTBENCH ===
 // Author(s): Joey Conroy, Abbie Mathew
-module CPU_tb;
+module CPUTestbench;
     reg clock;
     wire signed [15:0] ALUOut, IR, PC;
     CPU test_cpu(.clock(clock), .PC(PC), .ALUOut(ALUOut), .IR(IR));
