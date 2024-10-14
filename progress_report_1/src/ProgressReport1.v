@@ -126,16 +126,16 @@ module InstructionMemory (
     reg [15:0] IMemory[0:1023];
     assign Instruction = IMemory[Address >> 1];
     initial begin
-        IMemory[0] = 16'b0111_00_01_00001111;  // addi $1, $0, 15  (valid)
-        IMemory[1] = 16'b0111_00_10_00000111;  // addi $2, $0, 7   (valid)
-        IMemory[2] = 16'b0010_01_10_11_000000;  // and $3, $1, $2   (valid)
-        IMemory[3] = 16'b0001_01_10_11_000000;  // or $3, $1, $2    (replace $4 with $3)
-        IMemory[4] = 16'b0011_10_01_10_000000;  // nor $1, $2, $3   (replace $5 with $1)
-        IMemory[5] = 16'b0000_01_10_11_000000;  // slt $0, $3, $2   (replace $6 with $0)
-        IMemory[6] = 16'b0100_01_11_01_000000;  // nand $3, $1, $2  (replace $7 with $3)
-        IMemory[7] = 16'b0111_00_01_00001111;  // addi $1, $0, 15  (reuse)
-        IMemory[8] = 16'b0110_01_01_11_111111;  // addi $1, $1, -1  (valid)
-        IMemory[9] = 16'hFFFF;  // halt  (valid)
+        IMemory[0] = 16'b0111_00_01_00001111;
+        IMemory[1] = 16'b0111_00_10_00000111;
+        IMemory[2] = 16'b0010_01_10_11_000000;
+        IMemory[3] = 16'b0001_01_10_11_000000; 
+        IMemory[4] = 16'b0011_10_01_10_000000;
+        IMemory[5] = 16'b0000_01_10_11_000000; 
+        IMemory[6] = 16'b0100_01_11_01_000000;
+        IMemory[7] = 16'b0111_00_01_00001111;
+        IMemory[8] = 16'b0110_01_01_11_111111;
+        IMemory[9] = 16'hFFFF;
     end
 endmodule
 
