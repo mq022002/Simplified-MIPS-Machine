@@ -1,37 +1,13 @@
 // Author(s): Abbie Mathew
-// ALU Testbench (ALU_tb): This testbench simulates the ALU module by providing different 
-// operation codes and operand values. It displays the result of each ALU operation and 
-// indicates if the result is zero.
-
 module ALU_tb;
-
-    // Register to hold the 4-bit operation code for the ALU
     reg [3:0] op;
-
-    // Registers to hold the signed 16-bit input values for the ALU
     reg signed [15:0] a, b;
-
-    // Wire to capture the signed 16-bit result output from the ALU
     wire signed [15:0] result;
-
-    // Wire to capture the zero flag output from the ALU
     wire zero;
-
-    // Instantiate the ALU module for testing
-    ALU uut (
-        .op(op),
-        .a(a),
-        .b(b),
-        .result(result),
-        .zero(zero)
-    );
-
-    // Test sequence to apply different operations and inputs to the ALU
+    ALU uut (.op(op), .a(a), .b(b), .result(result), .zero(zero));
     initial begin
         $display("op   a                     b                     result                zero");
-        $monitor ("%b %b(%2d)  %b(%2d)  %b(%2d)  %b", op, a, a, b, b, result, result, zero);
-
-        // Apply various operation codes and input values to the ALU
+        $monitor("%b %b(%2d)  %b(%2d)  %b(%2d)  %b", op, a, a, b, b, result, result, zero);
         op = 4'b0000; a = 16'b0000000000000111; b = 16'b0000000000000001; #1;
         op = 4'b0001; a = 16'b0000000000000101; b = 16'b0000000000000010; #1;
         op = 4'b0010; a = 16'b0000000000000100; b = 16'b0000000000000010; #1;
@@ -42,8 +18,6 @@ module ALU_tb;
         op = 4'b0111; a = 16'b0000000000001110; b = 16'b0000000000001111; #1;
         op = 4'b1100; a = 16'b0000000000000101; b = 16'b0000000000000010; #1;
         op = 4'b1101; a = 16'b0000000000000101; b = 16'b0000000000000010; #1;
-
-        // End the test
         $finish;
     end
 endmodule
@@ -60,4 +34,5 @@ op   a                     b                     result                zero
 0111 0000000000001110(14)  0000000000001111(15)  0000000000000001( 1)  0
 1100 0000000000000101( 5)  0000000000000010( 2)  1111111111111000(-8)  0
 1101 0000000000000101( 5)  0000000000000010( 2)  1111111111111111(-1)  0
+testbenches/ALU_tb.v:21: $finish called at 10 (1s)
 */
