@@ -1,5 +1,6 @@
 # Usage:
-# 	- make all
+# 	- make ci
+# 	- make dev
 # 	- make clean
 
 SRC_DIR = src
@@ -11,7 +12,11 @@ VVP = vvp
 PROGRESS_REPORT2 = ProgressReport2.v
 PROGRESS_REPORT2_OUT = $(OUT_DIR)/ProgressReport2.out
 
-all: clean
+ci: 
+	$(IVERILOG) -o $(PROGRESS_REPORT2_OUT) $(SRC_DIR)/$(PROGRESS_REPORT2)
+	$(VVP) $(PROGRESS_REPORT2_OUT)
+	
+dev: clean
 	$(IVERILOG) -o $(PROGRESS_REPORT2_OUT) $(SRC_DIR)/$(PROGRESS_REPORT2)
 	$(VVP) $(PROGRESS_REPORT2_OUT)
 
