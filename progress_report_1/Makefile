@@ -23,18 +23,24 @@ CONTROL_UNIT = ControlUnit.v
 CPU = CPU.v
 PROGRESS_REPORT1 = ProgressReport1.v
 
+MUX2TO1_TB = Mux2To1Testbench.v
 ALU_TB = ALUTestbench.v
 REGISTER_FILE_TB = RegisterFileTestbench.v
 INSTRUCTION_MEMORY_TB = InstructionMemoryTestbench.v
 CONTROL_UNIT_TB = ControlUnitTestbench.v
 CPU_TB = CPUTestbench.v
 
+MUX2TO1_TB_OUT = $(OUT_DIR)/Mux2To1Testbench.out
 ALU_TB_OUT = $(OUT_DIR)/ALUTestbench.out
 REGISTER_FILE_TB_OUT = $(OUT_DIR)/RegisterFileTestbench.out
 INSTRUCTION_MEMORY_TB_OUT = $(OUT_DIR)/InstructionMemoryTestbench.out
 CONTROL_UNIT_TB_OUT = $(OUT_DIR)/ControlUnitTestbench.out
 CPU_TB_OUT = $(OUT_DIR)/CPUTestbench.out
 PROGRESS_REPORT1_OUT = $(OUT_DIR)/ProgressReport1.out
+
+compile_and_run_Mux2To1_tb: clean
+	$(IVERILOG) -o $(MUX2TO1_TB_OUT) $(SRC_DIR)/$(MUX2TO1) $(TB_DIR)/$(MUX2TO1_TB)
+	$(VVP) $(MUX2TO1_TB_OUT)
 
 compile_and_run_ALU_tb: clean
 	$(IVERILOG) -o $(ALU_TB_OUT) $(SRC_DIR)/$(MUX2TO1) $(SRC_DIR)/$(MUX4TO1) $(SRC_DIR)/$(ALU) $(TB_DIR)/$(ALU_TB)
