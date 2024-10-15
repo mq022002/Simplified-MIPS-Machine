@@ -72,7 +72,7 @@ compile_and_run_ProgressReport1: clean
 	$(IVERILOG) -o $(PROGRESS_REPORT1_OUT) $(SRC_DIR)/$(PROGRESS_REPORT1)
 	$(VVP) $(PROGRESS_REPORT1_OUT)
 
-all: compile_and_run_ALU_tb compile_and_run_RegisterFile_tb compile_and_run_InstructionMemory_tb compile_and_run_ControlUnit_tb compile_and_run_CPU_tb
+all: compile_and_run_Mux2To1_tb compile_and_run_Mux4To1_tb compile_and_run_ALU_tb compile_and_run_RegisterFile_tb compile_and_run_InstructionMemory_tb compile_and_run_ControlUnit_tb compile_and_run_CPU_tb
 
 clean:
 ifeq ($(OS),Windows_NT)
