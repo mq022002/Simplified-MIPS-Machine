@@ -23,17 +23,17 @@ CONTROL_UNIT = ControlUnit.v
 CPU = CPU.v
 PROGRESS_REPORT1 = ProgressReport1.v
 
-ALU_TB = ALU_tb.v
-REGISTER_FILE_TB = RegisterFile_tb.v
-INSTRUCTION_MEMORY_TB = InstructionMemory_tb.v
-CONTROL_UNIT_TB = ControlUnit_tb.v
-CPU_TB = CPU_tb.v
+ALU_TB = ALUTestbench.v
+REGISTER_FILE_TB = RegisterFileTestbench.v
+INSTRUCTION_MEMORY_TB = InstructionMemoryTestbench.v
+CONTROL_UNIT_TB = ControlUnitTestbench.v
+CPU_TB = CPUTestbench.v
 
-ALU_TB_OUT = $(OUT_DIR)/ALU_tb.out
-REGISTER_FILE_TB_OUT = $(OUT_DIR)/RegisterFile_tb.out
-INSTRUCTION_MEMORY_TB_OUT = $(OUT_DIR)/InstructionMemory_tb.out
-CONTROL_UNIT_TB_OUT = $(OUT_DIR)/ControlUnit_tb.out
-CPU_TB_OUT = $(OUT_DIR)/CPU_tb.out
+ALU_TB_OUT = $(OUT_DIR)/ALUTestbench.out
+REGISTER_FILE_TB_OUT = $(OUT_DIR)/RegisterFileTestbench.out
+INSTRUCTION_MEMORY_TB_OUT = $(OUT_DIR)/InstructionMemoryTestbench.out
+CONTROL_UNIT_TB_OUT = $(OUT_DIR)/ControlUnitTestbench.out
+CPU_TB_OUT = $(OUT_DIR)/CPUTestbench.out
 PROGRESS_REPORT1_OUT = $(OUT_DIR)/ProgressReport1.out
 
 compile_and_run_ALU_tb: clean
