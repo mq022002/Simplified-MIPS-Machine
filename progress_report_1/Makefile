@@ -57,7 +57,7 @@ compile_and_run_CPU_tb: clean
 	$(VVP) $(CPU_TB_OUT)
 
 compile_and_run_ProgressReport1: clean
-	$(IVERILOG) -o $(PROGRESS_REPORT1_OUT) $(SRC_DIR)/$(MUX2TO1) $(SRC_DIR)/$(MUX4TO1) $(SRC_DIR)/$(PROGRESS_REPORT1)
+	$(IVERILOG) -o $(PROGRESS_REPORT1_OUT) $(SRC_DIR)/$(PROGRESS_REPORT1)
 	$(VVP) $(PROGRESS_REPORT1_OUT)
 
 all: compile_and_run_ALU_tb compile_and_run_RegisterFile_tb compile_and_run_InstructionMemory_tb compile_and_run_ControlUnit_tb compile_and_run_CPU_tb
