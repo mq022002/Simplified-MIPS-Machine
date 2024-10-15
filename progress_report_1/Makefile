@@ -1,9 +1,12 @@
 # Usage:
+# 	- make compile_and_run_Mux2To1_tb
+# 	- make compile_and_run_Mux4To1_tb
 # 	- make compile_and_run_ALU_tb
 # 	- make compile_and_run_RegisterFile_tb
 # 	- make compile_and_run_InstructionMemory_tb
 # 	- make compile_and_run_ControlUnit_tb
 # 	- make compile_and_run_CPU_tb
+# 	- make compile_and_run_ProgressReport1
 # 	- make all
 # 	- make clean
 
