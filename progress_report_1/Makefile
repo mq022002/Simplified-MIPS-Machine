@@ -36,32 +36,43 @@ CONTROL_UNIT_TB_OUT = $(OUT_DIR)/ControlUnit_tb.out
 CPU_TB_OUT = $(OUT_DIR)/CPU_tb.out
 PROGRESS_REPORT1_OUT = $(OUT_DIR)/ProgressReport1.out
 
-compile_and_run_ALU_tb:
+compile_and_run_ALU_tb: clean
 	$(IVERILOG) -o $(ALU_TB_OUT) $(SRC_DIR)/$(MUX2TO1) $(SRC_DIR)/$(MUX4TO1) $(SRC_DIR)/$(ALU) $(TB_DIR)/$(ALU_TB)
 	$(VVP) $(ALU_TB_OUT)
 
-compile_and_run_RegisterFile_tb:
+compile_and_run_RegisterFile_tb: clean
 	$(IVERILOG) -o $(REGISTER_FILE_TB_OUT) $(SRC_DIR)/$(MUX2TO1) $(SRC_DIR)/$(MUX4TO1) $(SRC_DIR)/$(REGISTER_FILE) $(TB_DIR)/$(REGISTER_FILE_TB)
 	$(VVP) $(REGISTER_FILE_TB_OUT)
 
-compile_and_run_InstructionMemory_tb:
+compile_and_run_InstructionMemory_tb: clean
 	$(IVERILOG) -o $(INSTRUCTION_MEMORY_TB_OUT) $(SRC_DIR)/$(MUX2TO1) $(SRC_DIR)/$(MUX4TO1) $(SRC_DIR)/$(INSTRUCTION_MEMORY) $(TB_DIR)/$(INSTRUCTION_MEMORY_TB)
 	$(VVP) $(INSTRUCTION_MEMORY_TB_OUT)
 
-compile_and_run_ControlUnit_tb:
+compile_and_run_ControlUnit_tb: clean
 	$(IVERILOG) -o $(CONTROL_UNIT_TB_OUT) $(SRC_DIR)/$(MUX2TO1) $(SRC_DIR)/$(MUX4TO1) $(SRC_DIR)/$(CONTROL_UNIT) $(TB_DIR)/$(CONTROL_UNIT_TB)
 	$(VVP) $(CONTROL_UNIT_TB_OUT)
 
-compile_and_run_CPU_tb:
+compile_and_run_CPU_tb: clean
 	$(IVERILOG) -o $(CPU_TB_OUT) $(SRC_DIR)/$(MUX2TO1) $(SRC_DIR)/$(MUX4TO1) $(SRC_DIR)/$(ALU) $(SRC_DIR)/$(REGISTER_FILE) $(SRC_DIR)/$(INSTRUCTION_MEMORY) $(SRC_DIR)/$(CONTROL_UNIT) $(SRC_DIR)/$(CPU) $(TB_DIR)/$(CPU_TB)
 	$(VVP) $(CPU_TB_OUT)
 
-compile_and_run_ProgressReport1:
+compile_and_run_ProgressReport1: clean
 	$(IVERILOG) -o $(PROGRESS_REPORT1_OUT) $(SRC_DIR)/$(MUX2TO1) $(SRC_DIR)/$(MUX4TO1) $(SRC_DIR)/$(PROGRESS_REPORT1)
 	$(VVP) $(PROGRESS_REPORT1_OUT)
 
 all: compile_and_run_ALU_tb compile_and_run_RegisterFile_tb compile_and_run_InstructionMemory_tb compile_and_run_ControlUnit_tb compile_and_run_CPU_tb
 
 clean:
-	del /Q $(OUT_DIR)\*.out
-	# rm -f $(OUT_DIR)/*.out
+ifeq ($(OS),Windows_NT)
+	@echo "Detected OS: $(OS)"
+	powershell -Command "Remove-Item -Path .\$(OUT_DIR)\*.out -Force"
+else
+	UNAME_S := $(shell uname -s)
+	@echo "Detected OS: $(UNAME_S)"
+	ifeq ($(UNAME_S),Linux)
+		rm -f $(OUT_DIR)/*.out
+	endif
+	ifeq ($(UNAME_S),Darwin)
+		rm -f $(OUT_DIR)/*.out
+	endif
+endif
