@@ -1,4 +1,4 @@
-name: Run progress_report_2 Verilog Testbenches
+name: Run Verilog Testbenches
 
 on:
   push:
