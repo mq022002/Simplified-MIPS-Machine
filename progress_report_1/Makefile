@@ -8,7 +8,7 @@
 # 	- make compile_and_run_CPU_tb
 # 	- make compile_and_run_ProgressReport1
 # 	- make all
-# 	- make clean
+# 	- make
 
 SRC_DIR = src
 TB_DIR = testbenches
@@ -43,39 +43,41 @@ CONTROL_UNIT_TB_OUT = $(OUT_DIR)/ControlUnitTestbench.out
 CPU_TB_OUT = $(OUT_DIR)/CPUTestbench.out
 PROGRESS_REPORT1_OUT = $(OUT_DIR)/ProgressReport1.out
 
-compile_and_run_Mux2To1_tb: clean
+compile_and_run_Mux2To1_tb:
 	$(IVERILOG) -o $(MUX2TO1_TB_OUT) $(SRC_DIR)/$(MUX2TO1) $(TB_DIR)/$(MUX2TO1_TB)
 	$(VVP) $(MUX2TO1_TB_OUT)
 
-compile_and_run_Mux4To1_tb: clean
+compile_and_run_Mux4To1_tb:
 	$(IVERILOG) -o $(MUX4TO1_TB_OUT) $(SRC_DIR)/$(MUX4TO1) $(TB_DIR)/$(MUX4TO1_TB)
 	$(VVP) $(MUX4TO1_TB_OUT)
 
-compile_and_run_ALU_tb: clean
+compile_and_run_ALU_tb:
 	$(IVERILOG) -o $(ALU_TB_OUT) $(SRC_DIR)/$(MUX2TO1) $(SRC_DIR)/$(MUX4TO1) $(SRC_DIR)/$(ALU) $(TB_DIR)/$(ALU_TB)
 	$(VVP) $(ALU_TB_OUT)
 
-compile_and_run_RegisterFile_tb: clean
+compile_and_run_RegisterFile_tb:
 	$(IVERILOG) -o $(REGISTER_FILE_TB_OUT) $(SRC_DIR)/$(MUX2TO1) $(SRC_DIR)/$(MUX4TO1) $(SRC_DIR)/$(REGISTER_FILE) $(TB_DIR)/$(REGISTER_FILE_TB)
 	$(VVP) $(REGISTER_FILE_TB_OUT)
 
-compile_and_run_InstructionMemory_tb: clean
+compile_and_run_InstructionMemory_tb:
 	$(IVERILOG) -o $(INSTRUCTION_MEMORY_TB_OUT) $(SRC_DIR)/$(MUX2TO1) $(SRC_DIR)/$(MUX4TO1) $(SRC_DIR)/$(INSTRUCTION_MEMORY) $(TB_DIR)/$(INSTRUCTION_MEMORY_TB)
 	$(VVP) $(INSTRUCTION_MEMORY_TB_OUT)
 
-compile_and_run_ControlUnit_tb: clean
+compile_and_run_ControlUnit_tb:
 	$(IVERILOG) -o $(CONTROL_UNIT_TB_OUT) $(SRC_DIR)/$(MUX2TO1) $(SRC_DIR)/$(MUX4TO1) $(SRC_DIR)/$(CONTROL_UNIT) $(TB_DIR)/$(CONTROL_UNIT_TB)
 	$(VVP) $(CONTROL_UNIT_TB_OUT)
 
-compile_and_run_CPU_tb: clean
+compile_and_run_CPU_tb:
 	$(IVERILOG) -o $(CPU_TB_OUT) $(SRC_DIR)/$(MUX2TO1) $(SRC_DIR)/$(MUX4TO1) $(SRC_DIR)/$(ALU) $(SRC_DIR)/$(REGISTER_FILE) $(SRC_DIR)/$(INSTRUCTION_MEMORY) $(SRC_DIR)/$(CONTROL_UNIT) $(SRC_DIR)/$(CPU) $(TB_DIR)/$(CPU_TB)
 	$(VVP) $(CPU_TB_OUT)
 
-compile_and_run_ProgressReport1: clean
+compile_and_run_ProgressReport1:
 	$(IVERILOG) -o $(PROGRESS_REPORT1_OUT) $(SRC_DIR)/$(PROGRESS_REPORT1)
 	$(VVP) $(PROGRESS_REPORT1_OUT)
 
-all: compile_and_run_Mux2To1_tb compile_and_run_Mux4To1_tb compile_and_run_ALU_tb compile_and_run_RegisterFile_tb compile_and_run_InstructionMemory_tb compile_and_run_ControlUnit_tb compile_and_run_CPU_tb
+dev: clean compile_and_run_Mux2To1_tb compile_and_run_Mux4To1_tb compile_and_run_ALU_tb compile_and_run_RegisterFile_tb compile_and_run_InstructionMemory_tb compile_and_run_ControlUnit_tb compile_and_run_CPU_tb
+
+ci: compile_and_run_Mux2To1_tb compile_and_run_Mux4To1_tb compile_and_run_ALU_tb compile_and_run_RegisterFile_tb compile_and_run_InstructionMemory_tb compile_and_run_ControlUnit_tb compile_and_run_CPU_tb
 
 clean:
 ifeq ($(OS),Windows_NT)
