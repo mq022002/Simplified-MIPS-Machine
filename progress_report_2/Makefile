@@ -20,7 +20,7 @@ ifeq ($(OS),Windows_NT)
 	@echo "Detected OS: $(OS)"
 	powershell -Command "Remove-Item -Path .\$(OUT_DIR)\*.out -Force"
 else
-	UNAME_S := $(shell uname -s)
+	UNAME_S = $(shell uname -s)
 	@echo "Detected OS: $(UNAME_S)"
 	ifeq ($(UNAME_S),Linux)
 		rm -f $(OUT_DIR)/*.out
