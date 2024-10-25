@@ -164,29 +164,6 @@ module RegisterFile (
 endmodule
 
 // Author(s): Abbie Mathew
-module InstructionMemory (
-    input [15:0] Address,
-    output [15:0] Instruction
-);
-    reg [15:0] IMemory[0:1023];
-    assign Instruction = IMemory[Address >> 1];
-    initial begin
-        IMemory[0] = 16'b0111_00_01_00001111; // addi $t1, $0, 15
-        IMemory[1] = 16'b0111_00_10_00000111; // addi $t2, $0, 7
-        IMemory[2] = 16'b0010_01_10_11_000000; // and $t3, $t1, $t2
-        IMemory[3] = 16'b0001_01_10_11_000000; // sub $t3, $t1, $t2
-        IMemory[4] = 16'b0011_10_01_10_000000; // or $t2, $t2, $t1
-        IMemory[5] = 16'b0000_01_10_11_000000; // add $t3, $t1, $t2
-        IMemory[6] = 16'b0100_01_11_01_000000; // nor $t1, $t3, $t1
-        IMemory[7] = 16'b0111_00_01_00001111; // addi $t1, $0, 15
-        IMemory[8] = 16'b1011_01_10_00000010; // bne $t1, $t2, PC+4 (branch not taken)
-        IMemory[9] = 16'b0110_01_01_11_111111; // slt $t3, $t1, $t1
-        IMemory[10] = 16'hFFFF; // halt
-        IMemory[11] = 16'b1011_01_10_11111100; // bne $t1, $t2, PC-4 (branch taken)
-    end
-endmodule
-
-// Author(s): Matthew Quijano
 module ControlUnit (
     input [3:0] Op,
     output reg RegDst,
@@ -287,10 +264,23 @@ module CPU (
     wire [3:0] ALUControl;
     wire [1:0] WR;
     wire RegDst, ALUSrc, RegWrite, Beq, Bne, Zero, branchout;
-
-    InstructionMemory instr_mem(.Address(PC_reg), .Instruction(IR));
+    reg [15:0] IMemory[0:1023];
+    assign IR = IMemory[PC_reg >> 1];
 
     initial begin
+        IMemory[0] = 16'b0111_00_01_00001111; // addi $t1, $0, 15
+        IMemory[1] = 16'b0111_00_10_00000111; // addi $t2, $0, 7
+        IMemory[2] = 16'b0010_01_10_11_000000; // and $t3, $t1, $t2
+        IMemory[3] = 16'b0001_01_10_11_000000; // sub $t3, $t1, $t2
+        IMemory[4] = 16'b0011_10_01_10_000000; // or $t2, $t2, $t1
+        IMemory[5] = 16'b0000_01_10_11_000000; // add $t3, $t1, $t2
+        IMemory[6] = 16'b0100_01_11_01_000000; // nor $t1, $t3, $t1
+        IMemory[7] = 16'b0111_00_01_00001111; // addi $t1, $0, 15
+        IMemory[8] = 16'b1011_01_10_00000010; // bne $t1, $t2, PC+4 (branch not taken)
+        IMemory[9] = 16'b0110_01_01_11_111111; // slt $t3, $t1, $t1
+        IMemory[10] = 16'hFFFF; // halt
+        IMemory[11] = 16'b1011_01_10_11111100; // bne $t1, $t2, PC-4 (branch taken)
+        
         PC_reg = 0;
         halt = 0;
     end
