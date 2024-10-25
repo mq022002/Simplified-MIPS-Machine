@@ -1,6 +1,11 @@
 // === START OF UTILITY MODULES ===
 // Author(s): Joey Conroy, Abbie Mathew, Matthew Quijano
-module Mux2To1 #(parameter N = 1) (input [N-1:0] a, input [N-1:0] b, input sel, output [N-1:0] y);
+module Mux2To1 #(parameter N = 1) (
+    input [N-1:0] a, 
+    input [N-1:0] b, 
+    input sel, 
+    output [N-1:0] y
+);
     genvar i;
     generate
         for (i = 0; i < N; i = i + 1) begin: mux_loop
@@ -14,7 +19,14 @@ module Mux2To1 #(parameter N = 1) (input [N-1:0] a, input [N-1:0] b, input sel, 
 endmodule
 
 // Author(s): Joey Conroy, Abbie Mathew, Matthew Quijano
-module Mux4To1(input in0, input in1, input in2, input in3, input [1:0] sel, output y);
+module Mux4To1(
+    input in0, 
+    input in1, 
+    input in2, 
+    input in3, 
+    input [1:0] sel, 
+    output y
+);
     wire sel0_n, sel1_n, and0, and1, and2, and3;
     not (sel0_n, sel[0]);
     not (sel1_n, sel[1]);
@@ -27,7 +39,9 @@ endmodule
 
 // Author(s): Joey Conroy, Abbie Mathew, Matthew Quijano
 module BranchControl (
-    input beq, bne, zero,
+    input beq, 
+    input bne, 
+    input zero,
     output branchout
 );
     wire notzero, beqtaken, bnetaken;
@@ -40,10 +54,17 @@ endmodule
 
 // === START OF ALU-RELATED MODULES ===
 // Author(s): Joey Conroy, Abbie Mathew, Matthew Quijano
-module ALU1 (a, b, ainvert, binvert, op, less, carryin, carryout, result);
-    input a, b, less, carryin, ainvert, binvert;
-    input [1:0] op;
-    output carryout, result;
+module ALU1 (
+    input a, 
+    input b, 
+    input ainvert, 
+    input binvert, 
+    input [1:0] op, 
+    input less, 
+    input carryin, 
+    output carryout, 
+    output result
+);
     wire a1, b1, a_and_b, a_or_b, sum, c1, c2;
     wire not_a, not_b;
     not (not_a, a);
@@ -60,10 +81,18 @@ module ALU1 (a, b, ainvert, binvert, op, less, carryin, carryout, result);
 endmodule
 
 // Author(s): Joey Conroy, Abbie Mathew, Matthew Quijano
-module ALUmsb (a, b, ainvert, binvert, op, less, carryin, carryout, result, sum);
-    input a, b, less, carryin, ainvert, binvert;
-    input [1:0] op;
-    output carryout, result, sum;
+module ALUmsb (
+    input a, 
+    input b, 
+    input ainvert, 
+    input binvert, 
+    input [1:0] op, 
+    input less, 
+    input carryin, 
+    output carryout, 
+    output result, 
+    output sum
+);
     wire a1, b1, a_and_b, a_or_b;
     wire not_a, not_b;
     not (not_a, a);
@@ -78,11 +107,13 @@ module ALUmsb (a, b, ainvert, binvert, op, less, carryin, carryout, result, sum)
 endmodule
 
 // Author(s): Joey Conroy, Abbie Mathew, Matthew Quijano
-module ALU (op, a, b, result, zero);
-    input [3:0] op;
-    input [15:0] a, b;
-    output [15:0] result;
-    output zero;
+module ALU (
+    input [3:0] op, 
+    input [15:0] a, 
+    input [15:0] b, 
+    output [15:0] result, 
+    output zero
+);
     wire [15:0] carry;
     wire set;
     ALU1 alu0 (a[0], b[0], op[3], op[2], op[1:0], set, op[2], carry[0], result[0]);
@@ -109,12 +140,14 @@ endmodule
 // === START OF CORE COMPONENTS ===
 // Author(s): Joey Conroy
 module RegisterFile (
-    input [1:0] RR1, RR2,             
+    input [1:0] RR1, 
+    input [1:0] RR2,             
     input [1:0] WR,                   
     input [15:0] WD,                  
     input RegWrite,                   
     input clock,                      
-    output [15:0] RD1, RD2            
+    output [15:0] RD1, 
+    output [15:0] RD2            
 );
     reg [15:0] Regs[0:3];             
     assign RD1 = Regs[RR1];           
@@ -254,25 +287,54 @@ module CPU (
     wire [3:0] ALUControl;
     wire [1:0] WR;
     wire RegDst, ALUSrc, RegWrite, Beq, Bne, Zero, branchout;
+
     InstructionMemory instr_mem(.Address(PC_reg), .Instruction(IR));
+
     initial begin
         PC_reg = 0;
         halt = 0;
     end
+    
     assign PC = PC_reg;
-    ControlUnit MainCtr(.Op(IR[15:12]), .RegDst(RegDst), .ALUSrc(ALUSrc), 
-                        .RegWrite(RegWrite), .Beq(Beq), .Bne(Bne), 
-                        .ALUControl(ALUControl));
-    RegisterFile rf(.RR1(IR[11:10]), .RR2(IR[9:8]), .WR(WR), .WD(ALUOut), 
-                    .RegWrite(RegWrite), .clock(clock), .RD1(A), .RD2(RD2));
+
+    ControlUnit MainCtr(
+        .Op(IR[15:12]), 
+        .RegDst(RegDst), 
+        .ALUSrc(ALUSrc), 
+        .RegWrite(RegWrite), 
+        .Beq(Beq), 
+        .Bne(Bne), 
+        .ALUControl(ALUControl)
+    );
+
+    RegisterFile rf(
+        .RR1(IR[11:10]), 
+        .RR2(IR[9:8]), 
+        .WR(WR), 
+        .WD(ALUOut), 
+        .RegWrite(RegWrite), 
+        .clock(clock), 
+        .RD1(A), 
+        .RD2(RD2)
+    );
+
     assign SignExtend = {{8{IR[7]}}, IR[7:0]};
     Mux2To1 #(2) RegDstMux(.a(IR[9:8]), .b(IR[7:6]), .sel(RegDst), .y(WR));
     Mux2To1 #(16) ALUSrcMux(.a(RD2), .b(SignExtend), .sel(ALUSrc), .y(B));
-    ALU ex(.op(ALUControl), .a(A), .b(B), .result(ALUOut), .zero(Zero));
+
+    ALU ex(
+        .op(ALUControl), 
+        .a(A), 
+        .b(B), 
+        .result(ALUOut), 
+        .zero(Zero)
+    );
+
     ALU fetch(.op(4'b0010), .a(PC_reg), .b(16'd2), .result(NextPC), .zero());
     ALU branchALU(.op(4'b0010), .a(SignExtend << 1), .b(NextPC), .result(Target), .zero());
     BranchControl branchCtrl(.beq(Beq), .bne(Bne), .zero(Zero), .branchout(branchout));
     Mux2To1 #(16) branchMux(.a(NextPC), .b(Target), .sel(branchout), .y(BmuxToJmux));
+
     always @(negedge clock) begin
         if (IR == 16'hFFFF)
             halt <= 1;
@@ -288,7 +350,9 @@ module CPUTestbench;
     reg clock;
     wire signed [15:0] ALUOut, IR, PC;
     CPU test_cpu(.clock(clock), .PC(PC), .ALUOut(ALUOut), .IR(IR));
+    
     always #1 clock = ~clock;
+
     initial begin
         $display("Clock PC   IR                    WD");
         $monitor("%b     %2d   %b  %d (%b)", clock, PC, IR, ALUOut, ALUOut);
