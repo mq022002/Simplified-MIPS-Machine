@@ -163,6 +163,57 @@ module RegisterFile (
             Regs[WR] <= WD;
 endmodule
 
+// Author(s): Joey Conroy, Abbie Mathew, Matthew Quijano
+module InstructionMemory (
+    input [15:0] address,
+    output [15:0] instruction
+);
+    reg [15:0] IMemory[0:1023];
+
+    initial begin
+        IMemory[0] = 16'b0111_00_01_00001111; // addi $t1, $0, 15
+        IMemory[1] = 16'b0111_00_10_00000111; // addi $t2, $0, 7
+        IMemory[2] = 16'b0010_01_10_11_000000; // and $t3, $t1, $t2
+        IMemory[3] = 16'b0001_01_10_11_000000; // sub $t3, $t1, $t2
+        IMemory[4] = 16'b0011_10_01_10_000000; // or $t2, $t2, $t1
+        IMemory[5] = 16'b0000_01_10_11_000000; // add $t3, $t1, $t2
+        IMemory[6] = 16'b0100_01_11_01_000000; // nor $t1, $t3, $t1
+        IMemory[7] = 16'b0111_00_01_00001111; // addi $t1, $0, 15
+        IMemory[8] = 16'b1011_01_10_00000010; // bne $t1, $t2, PC+4 (branch not taken)
+        IMemory[9] = 16'b0110_01_01_11_111111; // slt $t3, $t1, $t1
+        IMemory[10] = 16'hFFFF; // halt
+        IMemory[11] = 16'b1011_01_10_11111100; // bne $t1, $t2, PC-4 (branch taken)
+        IMemory[12] = 16'b1000_00_01_00000000; // lw $t1, 0($0)
+        IMemory[13] = 16'b1001_00_10_00000010; // sw $t2, 4($0)
+    end
+
+    assign instruction = IMemory[address >> 1];
+endmodule
+
+// Author(s): Joey Conroy, Abbie Mathew, Matthew Quijano
+module DataMemory (
+    input clock,
+    input [15:0] address,
+    input [15:0] writeData,
+    input memWrite,
+    output [15:0] readData
+);
+    reg [15:0] DMemory[0:1023];
+
+    initial begin
+        DMemory[0] = 16'd5;
+        DMemory[1] = 16'd7;
+    end
+
+    assign readData = DMemory[address >> 1];
+
+    always @(negedge clock) begin
+        if (memWrite) begin
+            DMemory[address >> 1] <= writeData;
+        end
+    end
+endmodule
+
 // Author(s): Abbie Mathew
 module ControlUnit (
     input [3:0] Op,
@@ -282,32 +333,28 @@ module CPU (
     wire [3:0] ALUControl;
     wire [1:0] WR;
     wire RegDst, ALUSrc, RegWrite, MemWrite, MemtoReg, Beq, Bne, Zero, branchout;
-    reg [15:0] IMemory[0:1023];
-    reg [15:0] DMemory[0:1023];
-    assign IR = IMemory[PC_reg >> 1];
+
+    wire [15:0] instruction;
+    InstructionMemory instrMem (
+        .address(PC_reg),
+        .instruction(instruction)
+    );
+
+    wire [15:0] dataReadData;
+    DataMemory dataMem (
+        .clock(clock),
+        .address(ALUOut),
+        .writeData(RD2),
+        .memWrite(MemWrite),
+        .readData(dataReadData)
+    );
+
+    assign IR = instruction;
 
     initial begin
-    IMemory[0] = 16'b0111_00_01_00001111; // addi $t1, $0, 15
-    IMemory[1] = 16'b0111_00_10_00000111; // addi $t2, $0, 7
-    IMemory[2] = 16'b0010_01_10_11_000000; // and $t3, $t1, $t2
-    IMemory[3] = 16'b0001_01_10_11_000000; // sub $t3, $t1, $t2
-    IMemory[4] = 16'b0011_10_01_10_000000; // or $t2, $t2, $t1
-    IMemory[5] = 16'b0000_01_10_11_000000; // add $t3, $t1, $t2
-    IMemory[6] = 16'b0100_01_11_01_000000; // nor $t1, $t3, $t1
-    IMemory[7] = 16'b0111_00_01_00001111; // addi $t1, $0, 15
-    IMemory[8] = 16'b1011_01_10_00000010; // bne $t1, $t2, PC+4 (branch not taken)
-    IMemory[9] = 16'b0110_01_01_11_111111; // slt $t3, $t1, $t1
-    IMemory[10] = 16'hFFFF; // halt
-    IMemory[11] = 16'b1011_01_10_11111100; // bne $t1, $t2, PC-4 (branch taken)
-    IMemory[12] = 16'b1000_00_01_00000000; // lw $t1, 0($0)
-    IMemory[13] = 16'b1001_00_10_00000010; // sw $t2, 4($0)
-
-    DMemory[0] = 16'd5;
-    DMemory[1] = 16'd7;
-
-    PC_reg = 0;
-    halt = 0;
-end
+        PC_reg = 0;
+        halt = 0;
+    end
 
     assign PC = PC_reg;
 
@@ -337,7 +384,7 @@ end
     assign SignExtend = {{8{IR[7]}}, IR[7:0]};
     Mux2To1 #(2) RegDstMux(.a(IR[9:8]), .b(IR[7:6]), .sel(RegDst), .y(WR));
     Mux2To1 #(16) ALUSrcMux(.a(RD2), .b(SignExtend), .sel(ALUSrc), .y(B));
-    Mux2To1 #(16) MemToRegMux(.a(ALUOut), .b(DMemory[ALUOut >> 1]), .sel(MemtoReg), .y(MemReadData));
+    Mux2To1 #(16) MemToRegMux(.a(ALUOut), .b(dataReadData), .sel(MemtoReg), .y(MemReadData));
 
     ALU ex(
         .op(ALUControl), 
@@ -357,8 +404,6 @@ end
             halt <= 1;
         if (!halt)
             PC_reg <= BmuxToJmux;
-        if (MemWrite)
-            DMemory[ALUOut >> 1] <= RD2;
     end
 endmodule
 // === END OF CPU ===
