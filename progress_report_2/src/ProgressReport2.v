@@ -169,6 +169,8 @@ module ControlUnit (
     output reg RegDst,
     output reg ALUSrc,
     output reg RegWrite,
+    output reg MemWrite,
+    output reg MemtoReg,
     output reg Beq,
     output reg Bne,
     output reg [3:0] ALUControl
@@ -177,6 +179,8 @@ module ControlUnit (
         RegDst = 0;
         ALUSrc = 0;
         RegWrite = 0;
+        MemWrite = 0;
+        MemtoReg = 0;
         Beq = 0;
         Bne = 0;
         ALUControl = 4'b0000;
@@ -229,6 +233,18 @@ module ControlUnit (
                 RegWrite = 1;
                 ALUControl = 4'b0010;
             end
+            4'b1000: begin // lw
+                RegDst = 0;
+                ALUSrc = 1;
+                MemtoReg = 1;
+                RegWrite = 1;
+                ALUControl = 4'b0010;
+            end
+            4'b1001: begin // sw
+                ALUSrc = 1;
+                MemWrite = 1;
+                ALUControl = 4'b0010;
+            end
             4'b1010: begin // beq
                 Beq = 1;
                 ALUControl = 4'b0110; // Perform subtraction for comparison
@@ -241,6 +257,8 @@ module ControlUnit (
                 RegDst = 0;
                 ALUSrc = 0;
                 RegWrite = 0;
+                MemWrite = 0;
+                MemtoReg = 0;
                 Beq = 0;
                 Bne = 0;
                 ALUControl = 4'b0000;
@@ -260,31 +278,37 @@ module CPU (
 );
     reg [15:0] PC_reg;
     reg halt;
-    wire [15:0] NextPC, A, RD2, B, SignExtend, Target, BmuxToJmux;
+    wire [15:0] NextPC, A, RD2, B, SignExtend, Target, MemReadData, BmuxToJmux;
     wire [3:0] ALUControl;
     wire [1:0] WR;
-    wire RegDst, ALUSrc, RegWrite, Beq, Bne, Zero, branchout;
+    wire RegDst, ALUSrc, RegWrite, MemWrite, MemtoReg, Beq, Bne, Zero, branchout;
     reg [15:0] IMemory[0:1023];
+    reg [15:0] DMemory[0:1023];
     assign IR = IMemory[PC_reg >> 1];
 
     initial begin
-        IMemory[0] = 16'b0111_00_01_00001111; // addi $t1, $0, 15
-        IMemory[1] = 16'b0111_00_10_00000111; // addi $t2, $0, 7
-        IMemory[2] = 16'b0010_01_10_11_000000; // and $t3, $t1, $t2
-        IMemory[3] = 16'b0001_01_10_11_000000; // sub $t3, $t1, $t2
-        IMemory[4] = 16'b0011_10_01_10_000000; // or $t2, $t2, $t1
-        IMemory[5] = 16'b0000_01_10_11_000000; // add $t3, $t1, $t2
-        IMemory[6] = 16'b0100_01_11_01_000000; // nor $t1, $t3, $t1
-        IMemory[7] = 16'b0111_00_01_00001111; // addi $t1, $0, 15
-        IMemory[8] = 16'b1011_01_10_00000010; // bne $t1, $t2, PC+4 (branch not taken)
-        IMemory[9] = 16'b0110_01_01_11_111111; // slt $t3, $t1, $t1
-        IMemory[10] = 16'hFFFF; // halt
-        IMemory[11] = 16'b1011_01_10_11111100; // bne $t1, $t2, PC-4 (branch taken)
-        
-        PC_reg = 0;
-        halt = 0;
-    end
-    
+    IMemory[0] = 16'b0111_00_01_00001111; // addi $t1, $0, 15
+    IMemory[1] = 16'b0111_00_10_00000111; // addi $t2, $0, 7
+    IMemory[2] = 16'b0010_01_10_11_000000; // and $t3, $t1, $t2
+    IMemory[3] = 16'b0001_01_10_11_000000; // sub $t3, $t1, $t2
+    IMemory[4] = 16'b0011_10_01_10_000000; // or $t2, $t2, $t1
+    IMemory[5] = 16'b0000_01_10_11_000000; // add $t3, $t1, $t2
+    IMemory[6] = 16'b0100_01_11_01_000000; // nor $t1, $t3, $t1
+    IMemory[7] = 16'b0111_00_01_00001111; // addi $t1, $0, 15
+    IMemory[8] = 16'b1011_01_10_00000010; // bne $t1, $t2, PC+4 (branch not taken)
+    IMemory[9] = 16'b0110_01_01_11_111111; // slt $t3, $t1, $t1
+    IMemory[10] = 16'hFFFF; // halt
+    IMemory[11] = 16'b1011_01_10_11111100; // bne $t1, $t2, PC-4 (branch taken)
+    IMemory[12] = 16'b1000_00_01_00000000; // lw $t1, 0($0)
+    IMemory[13] = 16'b1001_00_10_00000010; // sw $t2, 4($0)
+
+    DMemory[0] = 16'd5;
+    DMemory[1] = 16'd7;
+
+    PC_reg = 0;
+    halt = 0;
+end
+
     assign PC = PC_reg;
 
     ControlUnit MainCtr(
@@ -292,6 +316,8 @@ module CPU (
         .RegDst(RegDst), 
         .ALUSrc(ALUSrc), 
         .RegWrite(RegWrite), 
+        .MemWrite(MemWrite), 
+        .MemtoReg(MemtoReg), 
         .Beq(Beq), 
         .Bne(Bne), 
         .ALUControl(ALUControl)
@@ -301,7 +327,7 @@ module CPU (
         .RR1(IR[11:10]), 
         .RR2(IR[9:8]), 
         .WR(WR), 
-        .WD(ALUOut), 
+        .WD(MemReadData), 
         .RegWrite(RegWrite), 
         .clock(clock), 
         .RD1(A), 
@@ -311,6 +337,7 @@ module CPU (
     assign SignExtend = {{8{IR[7]}}, IR[7:0]};
     Mux2To1 #(2) RegDstMux(.a(IR[9:8]), .b(IR[7:6]), .sel(RegDst), .y(WR));
     Mux2To1 #(16) ALUSrcMux(.a(RD2), .b(SignExtend), .sel(ALUSrc), .y(B));
+    Mux2To1 #(16) MemToRegMux(.a(ALUOut), .b(DMemory[ALUOut >> 1]), .sel(MemtoReg), .y(MemReadData));
 
     ALU ex(
         .op(ALUControl), 
@@ -330,6 +357,8 @@ module CPU (
             halt <= 1;
         if (!halt)
             PC_reg <= BmuxToJmux;
+        if (MemWrite)
+            DMemory[ALUOut >> 1] <= RD2;
     end
 endmodule
 // === END OF CPU ===
