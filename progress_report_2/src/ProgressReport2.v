@@ -179,10 +179,14 @@ module InstructionMemory (
         IMemory[5] = 16'b0000_01_10_11_000000; // add $t3, $t1, $t2
         IMemory[6] = 16'b0100_01_11_01_000000; // nor $t1, $t3, $t1
         IMemory[7] = 16'b0111_00_01_00001111; // addi $t1, $0, 15
-        IMemory[8] = 16'b1011_01_10_00000010; // bne $t1, $t2, PC+4 (branch not taken)
+
+        // Uncomment the next line for **branch not taken**
+        // IMemory[8] = 16'b1011_01_10_00000010; // bne $t1, $t2, PC+4 (branch not taken)
+        // Uncomment the next line for **branch taken**
+        IMemory[8] = 16'b1011_01_10_11111100; // bne $t1, $t2, PC-4 (branch taken)
+
         IMemory[9] = 16'b0110_01_01_11_111111; // slt $t3, $t1, $t1
         IMemory[10] = 16'hFFFF; // halt
-        IMemory[11] = 16'b1011_01_10_11111100; // bne $t1, $t2, PC-4 (branch taken)
         IMemory[12] = 16'b1000_00_01_00000000; // lw $t1, 0($0)
         IMemory[13] = 16'b1001_00_10_00000010; // sw $t2, 4($0)
     end
