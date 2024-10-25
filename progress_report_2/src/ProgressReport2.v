@@ -24,6 +24,18 @@ module Mux4To1(input in0, input in1, input in2, input in3, input [1:0] sel, outp
     and (and3, in3, sel[1], sel[0]);
     or (y, and0, and1, and2, and3);
 endmodule
+
+// Author(s): Joey Conroy, Abbie Mathew, Matthew Quijano
+module BranchControl (
+    input beq, bne, zero,
+    output branchout
+);
+    wire notzero, beqtaken, bnetaken;
+    not (notzero, zero);
+    and (beqtaken, beq, zero);
+    and (bnetaken, bne, notzero);
+    or (branchout, beqtaken, bnetaken);
+endmodule
 // === END OF UTILITY MODULES ===
 
 // === START OF ALU-RELATED MODULES ===
@@ -126,16 +138,18 @@ module InstructionMemory (
     reg [15:0] IMemory[0:1023];
     assign Instruction = IMemory[Address >> 1];
     initial begin
-        IMemory[0] = 16'b0111_00_01_00001111;
-        IMemory[1] = 16'b0111_00_10_00000111;
-        IMemory[2] = 16'b0010_01_10_11_000000;
-        IMemory[3] = 16'b0001_01_10_11_000000; 
-        IMemory[4] = 16'b0011_10_01_10_000000;
-        IMemory[5] = 16'b0000_01_10_11_000000; 
-        IMemory[6] = 16'b0100_01_11_01_000000;
-        IMemory[7] = 16'b0111_00_01_00001111;
-        IMemory[8] = 16'b0110_01_01_11_111111;
-        IMemory[9] = 16'hFFFF;
+        IMemory[0] = 16'b0111_00_01_00001111; // addi $t1, $0, 15
+        IMemory[1] = 16'b0111_00_10_00000111; // addi $t2, $0, 7
+        IMemory[2] = 16'b0010_01_10_11_000000; // and $t3, $t1, $t2
+        IMemory[3] = 16'b0001_01_10_11_000000; // sub $t3, $t1, $t2
+        IMemory[4] = 16'b0011_10_01_10_000000; // or $t2, $t2, $t1
+        IMemory[5] = 16'b0000_01_10_11_000000; // add $t3, $t1, $t2
+        IMemory[6] = 16'b0100_01_11_01_000000; // nor $t1, $t3, $t1
+        IMemory[7] = 16'b0111_00_01_00001111; // addi $t1, $0, 15
+        IMemory[8] = 16'b1011_01_10_00000010; // bne $t1, $t2, PC+4 (branch not taken)
+        IMemory[9] = 16'b0110_01_01_11_111111; // slt $t3, $t1, $t1
+        IMemory[10] = 16'hFFFF; // halt
+        IMemory[11] = 16'b1011_01_10_11111100; // bne $t1, $t2, PC-4 (branch taken)
     end
 endmodule
 
@@ -145,65 +159,84 @@ module ControlUnit (
     output reg RegDst,
     output reg ALUSrc,
     output reg RegWrite,
+    output reg Beq,
+    output reg Bne,
     output reg [3:0] ALUControl
 );
-    always @(*)
+    always @(*) begin
+        RegDst = 0;
+        ALUSrc = 0;
+        RegWrite = 0;
+        Beq = 0;
+        Bne = 0;
+        ALUControl = 4'b0000;
         case (Op)
-            4'b0000: begin
-                RegDst   = 1;
-                ALUSrc   = 0;
+            4'b0000: begin // add
+                RegDst = 1;
+                ALUSrc = 0;
                 RegWrite = 1;
-                ALUControl   = 4'b0010;
+                ALUControl = 4'b0010;
             end
-            4'b0001: begin
-                RegDst   = 1;
-                ALUSrc   = 0;
+            4'b0001: begin // sub
+                RegDst = 1;
+                ALUSrc = 0;
                 RegWrite = 1;
-                ALUControl   = 4'b0110;
+                ALUControl = 4'b0110;
             end
-            4'b0010: begin
-                RegDst   = 1;
-                ALUSrc   = 0;
+            4'b0010: begin // and
+                RegDst = 1;
+                ALUSrc = 0;
                 RegWrite = 1;
-                ALUControl   = 4'b0000;
+                ALUControl = 4'b0000;
             end
-            4'b0011: begin
-                RegDst   = 1;
-                ALUSrc   = 0;
+            4'b0011: begin // or
+                RegDst = 1;
+                ALUSrc = 0;
                 RegWrite = 1;
-                ALUControl   = 4'b0001;
+                ALUControl = 4'b0001;
             end
-            4'b0100: begin
-                RegDst   = 1;
-                ALUSrc   = 0;
+            4'b0100: begin // nor
+                RegDst = 1;
+                ALUSrc = 0;
                 RegWrite = 1;
-                ALUControl   = 4'b1100;
+                ALUControl = 4'b1100;
             end
-            4'b0101: begin
-                RegDst   = 1;
-                ALUSrc   = 0;
+            4'b0101: begin // nand
+                RegDst = 1;
+                ALUSrc = 0;
                 RegWrite = 1;
-                ALUControl   = 4'b1101;
+                ALUControl = 4'b1101;
             end
-            4'b0110: begin
-                RegDst   = 1;
-                ALUSrc   = 0;
+            4'b0110: begin // slt
+                RegDst = 1;
+                ALUSrc = 0;
                 RegWrite = 1;
-                ALUControl   = 4'b0111;
+                ALUControl = 4'b0111;
             end
-            4'b0111: begin
-                RegDst   = 0;
-                ALUSrc   = 1;
+            4'b0111: begin // addi
+                RegDst = 0;
+                ALUSrc = 1;
                 RegWrite = 1;
-                ALUControl   = 4'b0010;
+                ALUControl = 4'b0010;
+            end
+            4'b1010: begin // beq
+                Beq = 1;
+                ALUControl = 4'b0110; // Perform subtraction for comparison
+            end
+            4'b1011: begin // bne
+                Bne = 1;
+                ALUControl = 4'b0110; // Perform subtraction for comparison
             end
             default: begin
-                RegDst   = 0;
-                ALUSrc   = 0;
+                RegDst = 0;
+                ALUSrc = 0;
                 RegWrite = 0;
-                ALUControl   = 4'b0000;
+                Beq = 0;
+                Bne = 0;
+                ALUControl = 4'b0000;
             end
         endcase
+    end
 endmodule
 // === END OF CORE COMPONENTS ===
 
@@ -217,28 +250,34 @@ module CPU (
 );
     reg [15:0] PC_reg;
     reg halt;
-    wire [15:0] NextPC, A, RD2, B, SignExtend;
+    wire [15:0] NextPC, A, RD2, B, SignExtend, Target, BmuxToJmux;
     wire [3:0] ALUControl;
     wire [1:0] WR;
-    wire RegDst, ALUSrc, RegWrite, Zero;
-    InstructionMemory instr_mem (.Address(PC_reg), .Instruction(IR));
+    wire RegDst, ALUSrc, RegWrite, Beq, Bne, Zero, branchout;
+    InstructionMemory instr_mem(.Address(PC_reg), .Instruction(IR));
     initial begin
         PC_reg = 0;
         halt = 0;
     end
     assign PC = PC_reg;
-    ControlUnit MainCtr(.Op(IR[15:12]), .RegDst(RegDst), .ALUSrc(ALUSrc), .RegWrite(RegWrite), .ALUControl(ALUControl));
-    RegisterFile rf(.RR1(IR[11:10]), .RR2(IR[9:8]), .WR(WR), .WD(ALUOut), .RegWrite(RegWrite), .clock(clock), .RD1(A), .RD2(RD2));
+    ControlUnit MainCtr(.Op(IR[15:12]), .RegDst(RegDst), .ALUSrc(ALUSrc), 
+                        .RegWrite(RegWrite), .Beq(Beq), .Bne(Bne), 
+                        .ALUControl(ALUControl));
+    RegisterFile rf(.RR1(IR[11:10]), .RR2(IR[9:8]), .WR(WR), .WD(ALUOut), 
+                    .RegWrite(RegWrite), .clock(clock), .RD1(A), .RD2(RD2));
     assign SignExtend = {{8{IR[7]}}, IR[7:0]};
-    Mux2To1 #(2) RegDstMux (.a(IR[9:8]), .b(IR[7:6]), .sel(RegDst), .y(WR));
-    Mux2To1 #(16) ALUSrcMux (.a(RD2), .b(SignExtend), .sel(ALUSrc), .y(B));
+    Mux2To1 #(2) RegDstMux(.a(IR[9:8]), .b(IR[7:6]), .sel(RegDst), .y(WR));
+    Mux2To1 #(16) ALUSrcMux(.a(RD2), .b(SignExtend), .sel(ALUSrc), .y(B));
     ALU ex(.op(ALUControl), .a(A), .b(B), .result(ALUOut), .zero(Zero));
     ALU fetch(.op(4'b0010), .a(PC_reg), .b(16'd2), .result(NextPC), .zero());
+    ALU branchALU(.op(4'b0010), .a(SignExtend << 1), .b(NextPC), .result(Target), .zero());
+    BranchControl branchCtrl(.beq(Beq), .bne(Bne), .zero(Zero), .branchout(branchout));
+    Mux2To1 #(16) branchMux(.a(NextPC), .b(Target), .sel(branchout), .y(BmuxToJmux));
     always @(negedge clock) begin
         if (IR == 16'hFFFF)
             halt <= 1;
         if (!halt)
-            PC_reg <= NextPC;
+            PC_reg <= BmuxToJmux;
     end
 endmodule
 // === END OF CPU ===
@@ -281,8 +320,10 @@ Clock PC   IR                    WD
 1     12   0100011101000000     -32 (1111111111100000)
 0     14   0111000100001111      15 (0000000000001111)
 1     14   0111000100001111      15 (0000000000001111)
-0     16   0110010111111111       0 (0000000000000000)
-1     16   0110010111111111       0 (0000000000000000)
-0     18   1111111111111111       0 (0000000000000000)
+0     16   1011011000000010       0 (0000000000000000)
+1     16   1011011000000010       0 (0000000000000000)
+0     18   0110010111111111       0 (0000000000000000)
+1     18   0110010111111111       0 (0000000000000000)
+0     20   1111111111111111       0 (0000000000000000)
 CPU halted.
 */
