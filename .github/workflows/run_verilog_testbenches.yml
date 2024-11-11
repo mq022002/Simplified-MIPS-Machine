@@ -17,4 +17,4 @@ jobs:
 
       - name: Run ProgressReport2
         run: make ci
-        working-directory: progress_report_2
+        working-directory: progress_report_3
