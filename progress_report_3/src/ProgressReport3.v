@@ -241,33 +241,63 @@ endmodule
 module CPU (
     input clock,
     output [15:0] PC,
-    output [15:0] ALUOut,
-    output [15:0] IR
+    output [15:0] IFID_IR,
+    output [15:0] IDEX_IR,
+    output [15:0] WD
 );
     reg [15:0] PC_reg;
+    reg [15:0] IDEX_IR_reg;
+    reg [15:0] WD_reg;
     reg halt;
-    wire [15:0] NextPC, A, RD2, B, SignExtend;
+    wire [15:0] NextPC, A, RD2, B, SignExtend, ALUOut;
     wire [3:0] ALUControl;
     wire [1:0] WR;
     wire RegDst, ALUSrc, RegWrite, Zero;
-    InstructionMemory instr_mem (.Address(PC_reg), .Instruction(IR));
+    
+    reg [15:0] IFID_PC; 
+    reg [15:0] IDEX_PC, IDEX_A, IDEX_RD2, IDEX_SignExtend;
+    reg IDEX_RegWrite, IDEX_ALUSrc, IDEX_RegDst;
+    reg [3:0] IDEX_ALUControl;
+    reg [1:0] IDEX_WR;
+
+    InstructionMemory instr_mem (.Address(PC_reg), .Instruction(IFID_IR));
+
     initial begin
         PC_reg = 0;
         halt = 0;
     end
     assign PC = PC_reg;
-    ControlUnit MainCtr(.Op(IR[15:12]), .RegDst(RegDst), .ALUSrc(ALUSrc), .RegWrite(RegWrite), .ALUControl(ALUControl));
-    RegisterFile rf(.RR1(IR[11:10]), .RR2(IR[9:8]), .WR(WR), .WD(ALUOut), .RegWrite(RegWrite), .clock(clock), .RD1(A), .RD2(RD2));
-    assign SignExtend = {{8{IR[7]}}, IR[7:0]};
-    Mux2To1 #(2) RegDstMux (.a(IR[9:8]), .b(IR[7:6]), .sel(RegDst), .y(WR));
+    ControlUnit MainCtr(.Op(IFID_IR[15:12]), .RegDst(RegDst), .ALUSrc(ALUSrc), .RegWrite(RegWrite), .ALUControl(ALUControl));
+    RegisterFile rf(.RR1(IFID_IR[11:10]), .RR2(IFID_IR[9:8]), .WR(IDEX_WR), .WD(ALUOut), .RegWrite(IDEX_RegWrite), .clock(clock), .RD1(A), .RD2(RD2));
+    assign SignExtend = {{8{IFID_IR[7]}}, IFID_IR[7:0]}; 
+
+    Mux2To1 #(2) RegDstMux (.a(IFID_IR[9:8]), .b(IFID_IR[7:6]), .sel(RegDst), .y(WR));
     Mux2To1 #(16) ALUSrcMux (.a(RD2), .b(SignExtend), .sel(ALUSrc), .y(B));
     ALU ex(.op(ALUControl), .a(A), .b(B), .result(ALUOut), .zero(Zero));
     ALU fetch(.op(4'b0010), .a(PC_reg), .b(16'd2), .result(NextPC), .zero());
+
+    assign IDEX_IR = IDEX_IR_reg;
+    assign WD = WD_reg;
+
     always @(negedge clock) begin
-        if (IR == 16'hFFFF)
-            halt <= 1;
-        if (!halt)
+        if (IFID_IR == 16'hFFFF) halt <= 1;
+        if (!halt) begin
             PC_reg <= NextPC;
+            IFID_PC <= PC_reg;
+
+            IDEX_IR_reg <= IFID_IR;
+            IDEX_PC <= IFID_PC;
+            IDEX_A <= (IDEX_RegWrite && IDEX_WR == IFID_IR[11:10]) ? ALUOut : A;
+            IDEX_RD2 <= (IDEX_RegWrite && IDEX_WR == IFID_IR[9:8]) ? ALUOut : RD2;
+            IDEX_SignExtend <= SignExtend;
+            IDEX_RegWrite <= RegWrite;
+            IDEX_ALUSrc <= ALUSrc;
+            IDEX_RegDst <= RegDst;
+            IDEX_ALUControl <= ALUControl;
+            IDEX_WR <= WR;
+
+            WD_reg <= ALUOut;
+        end
     end
 endmodule
 // === END OF CPU ===
@@ -276,15 +306,15 @@ endmodule
 // Author(s): Joey Conroy, Abbie Mathew
 module CPUTestbench;
     reg clock;
-    wire signed [15:0] ALUOut, IR, PC;
-    CPU test_cpu(.clock(clock), .PC(PC), .ALUOut(ALUOut), .IR(IR));
+    wire signed [15:0] PC, IFID_IR, IDEX_IR, WD;
+    CPU test_cpu(.clock(clock), .PC(PC), .IFID_IR(IFID_IR), .IDEX_IR(IDEX_IR), .WD(WD));
     always #1 clock = ~clock;
     initial begin
-        $display("Clock PC   IR                    WD");
-        $monitor("%b     %2d   %b  %d (%b)", clock, PC, IR, ALUOut, ALUOut);
+        $display("Clock PC  IFID_IR            IDEX_IR               WD");
+        $monitor("%b    %2d   %b   %b   %d (%b)", clock, PC, IFID_IR, IDEX_IR, WD, WD);
         clock = 1;
         #2;
-        while (IR != 16'hFFFF) begin
+        while (IFID_IR != 16'hFFFF) begin
             #2; 
         end
         $display("CPU halted.");
@@ -293,25 +323,60 @@ module CPUTestbench;
 endmodule
 // === END OF TESTBENCH ===
 
+// With nops
 /*
-Clock PC   IR                    WD
-1      0   0111000100001111      15 (0000000000001111)
-0      2   0111001000000111       7 (0000000000000111)
-1      2   0111001000000111       7 (0000000000000111)
-0      4   0010011011000000       7 (0000000000000111)
-1      4   0010011011000000       7 (0000000000000111)
-0      6   0001011011000000       8 (0000000000001000)
-1      6   0001011011000000       8 (0000000000001000)
-0      8   0011100110000000      15 (0000000000001111)
-1      8   0011100110000000      15 (0000000000001111)
-0     10   0000011011000000      30 (0000000000011110)
-1     10   0000011011000000      30 (0000000000011110)
-0     12   0100011101000000     -32 (1111111111100000)
-1     12   0100011101000000     -32 (1111111111100000)
-0     14   0111000100001111      15 (0000000000001111)
-1     14   0111000100001111      15 (0000000000001111)
-0     16   0110010111111111       0 (0000000000000000)
-1     16   0110010111111111       0 (0000000000000000)
-0     18   1111111111111111       0 (0000000000000000)
-CPU halted.
+Clock PC  IFID_IR            IDEX_IR               WD
+1     0   0111000100001111   xxxxxxxxxxxxxxxx        x (xxxxxxxxxxxxxxxx)
+0     2   0111001000000111   0111000100001111       15 (0000000000001111)
+1     2   0111001000000111   0111000100001111       15 (0000000000001111)
+0     4   0000000000000000   0111001000000111        7 (0000000000000111)
+1     4   0000000000000000   0111001000000111        7 (0000000000000111)
+0     6   0010011011000000   0000000000000000        0 (0000000000000000)
+1     6   0010011011000000   0000000000000000        0 (0000000000000000)
+0     8   0000000000000000   0010011011000000        0 (0000000000000000)
+1     8   0000000000000000   0010011011000000        0 (0000000000000000)
+0    10   0001011011000000   0000000000000000        0 (0000000000000000)
+1    10   0001011011000000   0000000000000000        0 (0000000000000000)
+0    12   0000000000000000   0001011011000000        7 (0000000000000111)
+1    12   0000000000000000   0001011011000000        7 (0000000000000111)
+0    14   0011100110000000   0000000000000000        0 (0000000000000000)
+1    14   0011100110000000   0000000000000000        0 (0000000000000000)
+0    16   0000000000000000   0011100110000000        7 (0000000000000111)
+1    16   0000000000000000   0011100110000000        7 (0000000000000111)
+0    18   0000011011000000   0000000000000000        0 (0000000000000000)
+1    18   0000011011000000   0000000000000000        0 (0000000000000000)
+0    20   0000000000000000   0000011011000000        7 (0000000000000111)
+1    20   0000000000000000   0000011011000000        7 (0000000000000111)
+0    22   0100011101000000   0000000000000000        0 (0000000000000000)
+1    22   0100011101000000   0000000000000000        0 (0000000000000000)
+0    24   0111000100001111   0100011101000000       -8 (1111111111111000)
+1    24   0111000100001111   0100011101000000       -8 (1111111111111000)
+0    26   0000000000000000   0111000100001111       15 (0000000000001111)
+1    26   0000000000000000   0111000100001111       15 (0000000000001111)
+0    28   0110010111111111   0000000000000000        0 (0000000000000000)
+1    28   0110010111111111   0000000000000000        0 (0000000000000000)
+0    30   1111111111111111   0110010111111111        0 (0000000000000000)
+*/
+
+// Without nops
+/*
+Clock PC  IFID_IR            IDEX_IR               WD
+1     0   0111000100001111   xxxxxxxxxxxxxxxx        x (xxxxxxxxxxxxxxxx)
+0     2   0111001000000111   0111000100001111       15 (0000000000001111)
+1     2   0111001000000111   0111000100001111       15 (0000000000001111)
+0     4   0010011011000000   0111001000000111        7 (0000000000000111)
+1     4   0010011011000000   0111001000000111        7 (0000000000000111)
+0     6   0001011011000000   0010011011000000        0 (0000000000000000)
+1     6   0001011011000000   0010011011000000        0 (0000000000000000)
+0     8   0011100110000000   0001011011000000        7 (0000000000000111)
+1     8   0011100110000000   0001011011000000        7 (0000000000000111)
+0    10   0000011011000000   0011100110000000        7 (0000000000000111)
+1    10   0000011011000000   0011100110000000        7 (0000000000000111)
+0    12   0100011101000000   0000011011000000        7 (0000000000000111)
+1    12   0100011101000000   0000011011000000        7 (0000000000000111)
+0    14   0111000100001111   0100011101000000       -8 (1111111111111000)
+1    14   0111000100001111   0100011101000000       -8 (1111111111111000)
+0    16   0110010111111111   0111000100001111       15 (0000000000001111)
+1    16   0110010111111111   0111000100001111       15 (0000000000001111)
+0    18   1111111111111111   0110010111111111        0 (0000000000000000)
 */
