@@ -119,6 +119,7 @@ module RegisterFile (
 endmodule
 
 // Author(s): Abbie Mathew
+// With nops
 module InstructionMemory (
     input [15:0] Address,
     output [15:0] Instruction
@@ -126,18 +127,46 @@ module InstructionMemory (
     reg [15:0] IMemory[0:1023];
     assign Instruction = IMemory[Address >> 1];
     initial begin
-        IMemory[0] = 16'b0111_00_01_00001111;
-        IMemory[1] = 16'b0111_00_10_00000111;
-        IMemory[2] = 16'b0010_01_10_11_000000;
-        IMemory[3] = 16'b0001_01_10_11_000000; 
-        IMemory[4] = 16'b0011_10_01_10_000000;
-        IMemory[5] = 16'b0000_01_10_11_000000; 
-        IMemory[6] = 16'b0100_01_11_01_000000;
-        IMemory[7] = 16'b0111_00_01_00001111;
-        IMemory[8] = 16'b0110_01_01_11_111111;
-        IMemory[9] = 16'hFFFF;
+        IMemory[0] = 16'b0111_00_01_00001111;   // addi $t1, $0, 15
+        IMemory[1] = 16'b0111_00_10_00000111;   // addi $t2, $0, 7
+        IMemory[2] = 16'b0000_0000_0000_0000;   // nop
+        IMemory[3] = 16'b0010_01_10_11_000000;  // and $t3, $t1, $t2
+        IMemory[4] = 16'b0000_0000_0000_0000;   // nop
+        IMemory[5] = 16'b0001_01_10_11_000000;  // sub $t3, $t1, $t2
+        IMemory[6] = 16'b0000_0000_0000_0000;   // nop
+        IMemory[7] = 16'b0011_10_01_10_000000;  // or $t2, $t2, $t1
+        IMemory[8] = 16'b0000_0000_0000_0000;   // nop
+        IMemory[9] = 16'b0000_01_10_11_000000;  // add $t3, $t1, $t2
+        IMemory[10] = 16'b0000_0000_0000_0000;  // nop
+        IMemory[11] = 16'b0100_01_11_01_000000; // nor $t1, $t3, $t1
+        IMemory[12] = 16'b0111_00_01_00001111;  // addi $t1, $0, 15
+        IMemory[13] = 16'b0000_0000_0000_0000;  // nop
+        IMemory[14] = 16'b0110_01_01_11_111111; // slt $t3, $t1, $t1
+        IMemory[15] = 16'hFFFF;                 // halt
     end
 endmodule
+
+// Author(s): Abbie Mathew
+// Without nops
+// module InstructionMemory (
+//     input [15:0] Address,
+//     output [15:0] Instruction
+// );
+//     reg [15:0] IMemory[0:1023];
+//     assign Instruction = IMemory[Address >> 1];
+//     initial begin
+//         IMemory[0] = 16'b0111_00_01_00001111;   // addi $t1, $0, 15
+//         IMemory[1] = 16'b0111_00_10_00000111;   // addi $t2, $0, 7
+//         IMemory[2] = 16'b0010_01_10_11_000000;  // and $t3, $t1, $t2
+//         IMemory[3] = 16'b0001_01_10_11_000000;  // sub $t3, $t1, $t2
+//         IMemory[4] = 16'b0011_10_01_10_000000;  // or $t2, $t2, $t1
+//         IMemory[5] = 16'b0000_01_10_11_000000;  // add $t3, $t1, $t2
+//         IMemory[6] = 16'b0100_01_11_01_000000;  // nor $t1, $t3, $t1
+//         IMemory[7] = 16'b0111_00_01_00001111;   // addi $t1, $0, 15
+//         IMemory[8] = 16'b0110_01_01_11_111111;  // slt $t3, $t1, $t1
+//         IMemory[9] = 16'hFFFF;                  // halt
+//     end
+// endmodule
 
 // Author(s): Matthew Quijano
 module ControlUnit (
@@ -149,49 +178,49 @@ module ControlUnit (
 );
     always @(*)
         case (Op)
-            4'b0000: begin
+            4'b0000: begin // add
                 RegDst   = 1;
                 ALUSrc   = 0;
                 RegWrite = 1;
                 ALUControl   = 4'b0010;
             end
-            4'b0001: begin
+            4'b0001: begin // sub
                 RegDst   = 1;
                 ALUSrc   = 0;
                 RegWrite = 1;
                 ALUControl   = 4'b0110;
             end
-            4'b0010: begin
+            4'b0010: begin // and
                 RegDst   = 1;
                 ALUSrc   = 0;
                 RegWrite = 1;
                 ALUControl   = 4'b0000;
             end
-            4'b0011: begin
+            4'b0011: begin // or
                 RegDst   = 1;
                 ALUSrc   = 0;
                 RegWrite = 1;
                 ALUControl   = 4'b0001;
             end
-            4'b0100: begin
+            4'b0100: begin // nor
                 RegDst   = 1;
                 ALUSrc   = 0;
                 RegWrite = 1;
                 ALUControl   = 4'b1100;
             end
-            4'b0101: begin
+            4'b0101: begin // nand
                 RegDst   = 1;
                 ALUSrc   = 0;
                 RegWrite = 1;
                 ALUControl   = 4'b1101;
             end
-            4'b0110: begin
+            4'b0110: begin // slt
                 RegDst   = 1;
                 ALUSrc   = 0;
                 RegWrite = 1;
                 ALUControl   = 4'b0111;
             end
-            4'b0111: begin
+            4'b0111: begin // addi
                 RegDst   = 0;
                 ALUSrc   = 1;
                 RegWrite = 1;
