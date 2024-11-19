@@ -127,22 +127,22 @@ module InstructionMemory (
     reg [15:0] IMemory[0:1023];
     assign Instruction = IMemory[Address >> 1];
     initial begin
-        IMemory[0] = 16'b0111_00_01_00001111;   // addi $t1, $0, 15
-        IMemory[1] = 16'b0111_00_10_00000111;   // addi $t2, $0, 7
-        IMemory[2] = 16'b0000_0000_0000_0000;   // nop
-        IMemory[3] = 16'b0010_01_10_11_000000;  // and $t3, $t1, $t2
-        IMemory[4] = 16'b0000_0000_0000_0000;   // nop
-        IMemory[5] = 16'b0001_01_10_11_000000;  // sub $t3, $t1, $t2
-        IMemory[6] = 16'b0000_0000_0000_0000;   // nop
-        IMemory[7] = 16'b0011_10_01_10_000000;  // or $t2, $t2, $t1
-        IMemory[8] = 16'b0000_0000_0000_0000;   // nop
-        IMemory[9] = 16'b0000_01_10_11_000000;  // add $t3, $t1, $t2
-        IMemory[10] = 16'b0000_0000_0000_0000;  // nop
-        IMemory[11] = 16'b0100_01_11_01_000000; // nor $t1, $t3, $t1
-        IMemory[12] = 16'b0111_00_01_00001111;  // addi $t1, $0, 15
-        IMemory[13] = 16'b0000_0000_0000_0000;  // nop
-        IMemory[14] = 16'b0110_01_01_11_111111; // slt $t3, $t1, $t1
-        IMemory[15] = 16'hFFFF;                 // halt
+        IMemory[0] = 16'b0111_00_01_00001111;   // addi $t1, $0, 15 (Expected: $t1 = 15)
+        IMemory[1] = 16'b0111_00_10_00000111;   // addi $t2, $0, 7 (Expected: $t2 = 7)
+        IMemory[2] = 16'b0000_0000_0000_0000;   // nop (No changes expected)
+        IMemory[3] = 16'b0010_01_10_11_000000;  // and $t3, $t1, $t2 (Expected: $t3 = $t1 & $t2 = 7)
+        IMemory[4] = 16'b0000_0000_0000_0000;   // nop (No changes expected)
+        IMemory[5] = 16'b0001_01_10_11_000000;  // sub $t3, $t1, $t2 (Expected: $t3 = $t1 - $t2 = 8)
+        IMemory[6] = 16'b0000_0000_0000_0000;   // nop (No changes expected)
+        IMemory[7] = 16'b0011_10_01_10_000000;  // or $t2, $t2, $t1 (Expected: $t2 = $t2 | $t1 = 15)
+        IMemory[8] = 16'b0000_0000_0000_0000;   // nop (No changes expected)
+        IMemory[9] = 16'b0000_01_10_11_000000;  // add $t3, $t1, $t2 (Expected: $t3 = $t1 + $t2 = 22)
+        IMemory[10] = 16'b0000_0000_0000_0000;  // nop (No changes expected)
+        IMemory[11] = 16'b0100_01_11_01_000000; // nor $t1, $t3, $t1 (Expected: $t1 = ~($t3 | $t1) = -32)
+        IMemory[12] = 16'b0111_00_01_00001111;  // addi $t1, $0, 15 (Expected: $t1 = 15)
+        IMemory[13] = 16'b0000_0000_0000_0000;  // nop (No changes expected)
+        IMemory[14] = 16'b0110_01_01_11_111111; // slt $t3, $t1, $t1 (Expected: $t3 = ($t1 < $t1) = 0)
+        IMemory[15] = 16'hFFFF;                 // halt (Stop execution)
     end
 endmodule
 
@@ -155,16 +155,16 @@ endmodule
 //     reg [15:0] IMemory[0:1023];
 //     assign Instruction = IMemory[Address >> 1];
 //     initial begin
-//         IMemory[0] = 16'b0111_00_01_00001111;   // addi $t1, $0, 15
-//         IMemory[1] = 16'b0111_00_10_00000111;   // addi $t2, $0, 7
-//         IMemory[2] = 16'b0010_01_10_11_000000;  // and $t3, $t1, $t2
-//         IMemory[3] = 16'b0001_01_10_11_000000;  // sub $t3, $t1, $t2
-//         IMemory[4] = 16'b0011_10_01_10_000000;  // or $t2, $t2, $t1
-//         IMemory[5] = 16'b0000_01_10_11_000000;  // add $t3, $t1, $t2
-//         IMemory[6] = 16'b0100_01_11_01_000000;  // nor $t1, $t3, $t1
-//         IMemory[7] = 16'b0111_00_01_00001111;   // addi $t1, $0, 15
-//         IMemory[8] = 16'b0110_01_01_11_111111;  // slt $t3, $t1, $t1
-//         IMemory[9] = 16'hFFFF;                  // halt
+//         IMemory[0] = 16'b0111_00_01_00001111;   // addi $t1, $0, 15 (Expected: $t1 = 15)
+//         IMemory[1] = 16'b0111_00_10_00000111;   // addi $t2, $0, 7 (Expected: $t2 = 7)
+//         IMemory[2] = 16'b0010_01_10_11_000000;  // and $t3, $t1, $t2 (Expected: Hazard; incorrect $t3)
+//         IMemory[3] = 16'b0001_01_10_11_000000;  // sub $t3, $t1, $t2 (Expected: Hazard; incorrect $t3)
+//         IMemory[4] = 16'b0011_10_01_10_000000;  // or $t2, $t2, $t1 (Expected: Hazard; incorrect $t2)
+//         IMemory[5] = 16'b0000_01_10_11_000000;  // add $t3, $t1, $t2 (Expected: Hazard; incorrect $t3)
+//         IMemory[6] = 16'b0100_01_11_01_000000;  // nor $t1, $t3, $t1 (Expected: Hazard; incorrect $t1)
+//         IMemory[7] = 16'b0111_00_01_00001111;   // addi $t1, $0, 15 (Expected: $t1 = 15)
+//         IMemory[8] = 16'b0110_01_01_11_111111;  // slt $t3, $t1, $t1 (Expected: Hazard; incorrect $t3)
+//         IMemory[9] = 16'hFFFF;                  // halt (Stop execution)
 //     end
 // endmodule
 
