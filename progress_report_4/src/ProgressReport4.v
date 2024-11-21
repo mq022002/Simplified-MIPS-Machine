@@ -118,7 +118,8 @@ module ALU (
     a,
     b,
     result,
-    zero);
+    zero
+    );
     input [3:0] op;
     input [15:0] a, b;
     output [15:0] result;
