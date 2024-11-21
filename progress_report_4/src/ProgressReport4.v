@@ -24,6 +24,20 @@ module Mux4To1(input in0, input in1, input in2, input in3, input [1:0] sel, outp
     and (and3, in3, sel[1], sel[0]);
     or (y, and0, and1, and2, and3);
 endmodule
+
+// Author(s): Joey Conroy, Abbie Mathew, Matthew Quijano
+module BranchControl (
+    input beq, 
+    input bne, 
+    input zero,
+    output branchout
+);
+    wire notzero, beqtaken, bnetaken;
+    not (notzero, zero);
+    and (beqtaken, beq, zero);
+    and (bnetaken, bne, notzero);
+    or (branchout, beqtaken, bnetaken);
+endmodule
 // === END OF UTILITY MODULES ===
 
 // === START OF ALU-RELATED MODULES ===
@@ -174,9 +188,21 @@ module ControlUnit (
     output reg RegDst,
     output reg ALUSrc,
     output reg RegWrite,
+    output reg MemWrite,
+    output reg MemtoReg,
+    output reg Beq,
+    output reg Bne,
     output reg [3:0] ALUControl
 );
-    always @(*)
+    always @(*) begin
+        RegDst = 0;
+        ALUSrc = 0;
+        RegWrite = 0;
+        MemWrite = 0;
+        MemtoReg = 0;
+        Beq = 0;
+        Bne = 0;
+        ALUControl = 4'b0000;
         case (Op)
             4'b0000: begin // add
                 RegDst   = 1;
@@ -226,13 +252,38 @@ module ControlUnit (
                 RegWrite = 1;
                 ALUControl   = 4'b0010;
             end
+            4'b1000: begin // lw
+                RegDst = 0;
+                ALUSrc = 1;
+                MemtoReg = 1;
+                RegWrite = 1;
+                ALUControl = 4'b0010;
+            end
+            4'b1001: begin // sw
+                ALUSrc = 1;
+                MemWrite = 1;
+                ALUControl = 4'b0010;
+            end
+            4'b1010: begin // beq
+                Beq = 1;
+                ALUControl = 4'b0110;
+            end
+            4'b1011: begin // bne
+                Bne = 1;
+                ALUControl = 4'b0110;
+            end
             default: begin
                 RegDst   = 0;
                 ALUSrc   = 0;
                 RegWrite = 0;
+                MemWrite = 0;
+                MemtoReg = 0;
+                Beq = 0;
+                Bne = 0;
                 ALUControl   = 4'b0000;
             end
         endcase
+    end
 endmodule
 // === END OF CORE COMPONENTS ===
 
