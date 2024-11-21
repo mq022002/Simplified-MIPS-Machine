@@ -182,6 +182,30 @@ endmodule
 //     end
 // endmodule
 
+// Author(s): Joey Conroy, Abbie Mathew, Matthew Quijano
+module DataMemory (
+    input clock,
+    input [15:0] address,
+    input [15:0] writeData,
+    input memWrite,
+    output [15:0] readData
+);
+    reg [15:0] DMemory[0:1023];
+
+    initial begin
+        DMemory[0] = 16'd5;
+        DMemory[1] = 16'd7;
+    end
+
+    assign readData = DMemory[address >> 1];
+
+    always @(negedge clock) begin
+        if (memWrite) begin
+            DMemory[address >> 1] <= writeData;
+        end
+    end
+endmodule
+
 // Author(s): Matthew Quijano
 module ControlUnit (
     input [3:0] Op,
