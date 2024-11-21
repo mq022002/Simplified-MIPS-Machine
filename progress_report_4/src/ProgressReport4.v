@@ -1,6 +1,11 @@
 // === START OF UTILITY MODULES ===
 // Author(s): Joey Conroy, Abbie Mathew, Matthew Quijano
-module Mux2To1 #(parameter N = 1) (input [N-1:0] a, input [N-1:0] b, input sel, output [N-1:0] y);
+module Mux2To1 #(parameter N = 1) (
+    input [N-1:0] a,
+    input [N-1:0] b,
+    input sel,
+    output [N-1:0] y
+    );
     genvar i;
     generate
         for (i = 0; i < N; i = i + 1) begin: mux_loop
@@ -14,7 +19,14 @@ module Mux2To1 #(parameter N = 1) (input [N-1:0] a, input [N-1:0] b, input sel, 
 endmodule
 
 // Author(s): Joey Conroy, Abbie Mathew, Matthew Quijano
-module Mux4To1(input in0, input in1, input in2, input in3, input [1:0] sel, output y);
+module Mux4To1(
+    input in0,
+    input in1,
+    input in2,
+    input in3,
+    input [1:0] sel,
+    output y
+    );
     wire sel0_n, sel1_n, and0, and1, and2, and3;
     not (sel0_n, sel[0]);
     not (sel1_n, sel[1]);
@@ -27,11 +39,11 @@ endmodule
 
 // Author(s): Joey Conroy, Abbie Mathew, Matthew Quijano
 module BranchControl (
-    input beq, 
-    input bne, 
+    input beq,
+    input bne,
     input zero,
     output branchout
-);
+    );
     wire notzero, beqtaken, bnetaken;
     not (notzero, zero);
     and (beqtaken, beq, zero);
@@ -42,7 +54,17 @@ endmodule
 
 // === START OF ALU-RELATED MODULES ===
 // Author(s): Joey Conroy, Abbie Mathew, Matthew Quijano
-module ALU1 (a, b, ainvert, binvert, op, less, carryin, carryout, result);
+module ALU1 (
+    a,
+    b,
+    ainvert,
+    binvert,
+    op,
+    less,
+    carryin,
+    carryout,
+    result
+    );
     input a, b, less, carryin, ainvert, binvert;
     input [1:0] op;
     output carryout, result;
@@ -62,7 +84,18 @@ module ALU1 (a, b, ainvert, binvert, op, less, carryin, carryout, result);
 endmodule
 
 // Author(s): Joey Conroy, Abbie Mathew, Matthew Quijano
-module ALUmsb (a, b, ainvert, binvert, op, less, carryin, carryout, result, sum);
+module ALUmsb (
+    a,
+    b,
+    ainvert,
+    binvert,
+    op,
+    less,
+    carryin,
+    carryout,
+    result,
+    sum
+    );
     input a, b, less, carryin, ainvert, binvert;
     input [1:0] op;
     output carryout, result, sum;
@@ -80,7 +113,12 @@ module ALUmsb (a, b, ainvert, binvert, op, less, carryin, carryout, result, sum)
 endmodule
 
 // Author(s): Joey Conroy, Abbie Mathew, Matthew Quijano
-module ALU (op, a, b, result, zero);
+module ALU (
+    op,
+    a,
+    b,
+    result,
+    zero);
     input [3:0] op;
     input [15:0] a, b;
     output [15:0] result;
@@ -111,13 +149,15 @@ endmodule
 // === START OF CORE COMPONENTS ===
 // Author(s): Joey Conroy
 module RegisterFile (
-    input [1:0] RR1, RR2,             
-    input [1:0] WR,                   
-    input [15:0] WD,                  
-    input RegWrite,                   
-    input clock,                      
-    output [15:0] RD1, RD2            
-);
+    input [1:0] RR1,
+    RR2,
+    input [1:0] WR,
+    input [15:0] WD,
+    input RegWrite,
+    input clock,
+    output [15:0] RD1,
+    RD2
+    );
     reg [15:0] Regs[0:3];             
     assign RD1 = Regs[RR1];           
     assign RD2 = Regs[RR2];           
@@ -137,7 +177,7 @@ endmodule
 module InstructionMemory (
     input [15:0] Address,
     output [15:0] Instruction
-);
+    );
     reg [15:0] IMemory[0:1023];
     assign Instruction = IMemory[Address >> 1];
     initial begin
@@ -165,7 +205,7 @@ endmodule
 // module InstructionMemory (
 //     input [15:0] Address,
 //     output [15:0] Instruction
-// );
+//     );
 //     reg [15:0] IMemory[0:1023];
 //     assign Instruction = IMemory[Address >> 1];
 //     initial begin
@@ -189,16 +229,13 @@ module DataMemory (
     input [15:0] writeData,
     input memWrite,
     output [15:0] readData
-);
+    );
     reg [15:0] DMemory[0:1023];
-
     initial begin
         DMemory[0] = 16'd5;
         DMemory[1] = 16'd7;
     end
-
     assign readData = DMemory[address >> 1];
-
     always @(negedge clock) begin
         if (memWrite) begin
             DMemory[address >> 1] <= writeData;
@@ -217,7 +254,7 @@ module ControlUnit (
     output reg Beq,
     output reg Bne,
     output reg [3:0] ALUControl
-);
+    );
     always @(*) begin
         RegDst = 0;
         ALUSrc = 0;
@@ -319,7 +356,7 @@ module CPU (
     output [15:0] IFID_IR,
     output [15:0] IDEX_IR,
     output [15:0] WD
-);
+    );
     reg [15:0] PC_reg;
     reg [15:0] IDEX_IR_reg;
     reg [15:0] WD_reg;
@@ -328,15 +365,12 @@ module CPU (
     wire [3:0] ALUControl;
     wire [1:0] WR;
     wire RegDst, ALUSrc, RegWrite, Zero;
-    
     reg [15:0] IFID_PC; 
     reg [15:0] IDEX_PC, IDEX_A, IDEX_RD2, IDEX_SignExtend;
     reg IDEX_RegWrite, IDEX_ALUSrc, IDEX_RegDst;
     reg [3:0] IDEX_ALUControl;
     reg [1:0] IDEX_WR;
-
     InstructionMemory instr_mem (.Address(PC_reg), .Instruction(IFID_IR));
-
     initial begin
         PC_reg = 0;
         halt = 0;
@@ -345,21 +379,21 @@ module CPU (
     ControlUnit MainCtr(.Op(IFID_IR[15:12]), .RegDst(RegDst), .ALUSrc(ALUSrc), .RegWrite(RegWrite), .ALUControl(ALUControl));
     RegisterFile rf(.RR1(IFID_IR[11:10]), .RR2(IFID_IR[9:8]), .WR(IDEX_WR), .WD(ALUOut), .RegWrite(IDEX_RegWrite), .clock(clock), .RD1(A), .RD2(RD2));
     assign SignExtend = {{8{IFID_IR[7]}}, IFID_IR[7:0]}; 
-
     Mux2To1 #(2) RegDstMux (.a(IFID_IR[9:8]), .b(IFID_IR[7:6]), .sel(RegDst), .y(WR));
     Mux2To1 #(16) ALUSrcMux (.a(IDEX_RD2), .b(IDEX_SignExtend), .sel(IDEX_ALUSrc), .y(B));
     ALU ex(.op(IDEX_ALUControl), .a(IDEX_A), .b(B), .result(ALUOut), .zero(Zero));
     ALU fetch(.op(4'b0010), .a(PC_reg), .b(16'd2), .result(NextPC), .zero());
-
     assign IDEX_IR = IDEX_IR_reg;
     assign WD = WD_reg;
-
     always @(negedge clock) begin
         if (IFID_IR == 16'hFFFF) halt <= 1;
         if (!halt) begin
+            // === START OF IF/ID PIPELINE STAGE ===
             PC_reg <= NextPC;
             IFID_PC <= PC_reg;
+            // === END OF IF/ID PIPELINE STAGE ===
 
+            // === START OF ID/EX PIPELINE STAGE ===
             IDEX_IR_reg <= IFID_IR;
             IDEX_PC <= IFID_PC;
             IDEX_A <= A;
@@ -370,8 +404,11 @@ module CPU (
             IDEX_RegDst <= RegDst;
             IDEX_ALUControl <= ALUControl;
             IDEX_WR <= WR;
+            // === END OF ID/EX PIPELINE STAGE ===
 
+            // === START OF EX/MEM Pipeline Stage ===
             WD_reg <= ALUOut;
+            // === END OF EX/MEM Pipeline Stage ===
         end
     end
 endmodule
@@ -382,7 +419,13 @@ endmodule
 module CPUTestbench;
     reg clock;
     wire signed [15:0] PC, IFID_IR, IDEX_IR, WD;
-    CPU test_cpu(.clock(clock), .PC(PC), .IFID_IR(IFID_IR), .IDEX_IR(IDEX_IR), .WD(WD));
+    CPU test_cpu(
+        .clock(clock),
+        .PC(PC),
+        .IFID_IR(IFID_IR),
+        .IDEX_IR(IDEX_IR),
+        .WD(WD)
+        );
     always #1 clock = ~clock;
     initial begin
         $display("Clock PC  IFID_IR            IDEX_IR               WD");
