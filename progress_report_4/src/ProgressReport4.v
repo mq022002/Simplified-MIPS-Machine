@@ -429,12 +429,12 @@ module CPUTestbench;
         );
     always #1 clock = ~clock;
     initial begin
-        $display("Clock  PC   IFID_IR  IDEX_IR  WD");
+        $display("PC  IFID_IR  IDEX_IR  WD");
         clock = 1;
         #2;
         while (IFID_IR != 16'hFFFF) begin
             @(posedge clock);
-            $display("%b      %2d   %h     %h %d (%h)", clock, PC, IFID_IR, IDEX_IR, WD, WD);
+            $display("%2d  %h     %h %d (%h)", PC, IFID_IR, IDEX_IR, WD, WD);
         end
         $display("CPU halted.");
         $finish;
@@ -444,36 +444,36 @@ endmodule
 
 // With nops
 /*
-Clock  PC   IFID_IR  IDEX_IR  WD
-1       2   7207     710f      x (xxxx)
-1       4   0000     7207     15 (000f)
-1       6   26c0     0000      7 (0007)
-1       8   0000     26c0      0 (0000)
-1      10   16c0     0000      7 (0007)
-1      12   0000     16c0      0 (0000)
-1      14   3980     0000      8 (0008)
-1      16   0000     3980      0 (0000)
-1      18   06c0     0000     15 (000f)
-1      20   0000     06c0      0 (0000)
-1      22   4740     0000     30 (001e)
-1      24   710f     4740      0 (0000)
-1      26   0000     710f    -32 (ffe0)
-1      28   65ff     0000     15 (000f)
-1      30   ffff     65ff      0 (0000)
+PC  IFID_IR  IDEX_IR  WD
+ 2  7207     710f      x (xxxx)
+ 4  0000     7207     15 (000f)
+ 6  26c0     0000      7 (0007)
+ 8  0000     26c0      0 (0000)
+10  16c0     0000      7 (0007)
+12  0000     16c0      0 (0000)
+14  3980     0000      8 (0008)
+16  0000     3980      0 (0000)
+18  06c0     0000     15 (000f)
+20  0000     06c0      0 (0000)
+22  4740     0000     30 (001e)
+24  710f     4740      0 (0000)
+26  0000     710f    -32 (ffe0)
+28  65ff     0000     15 (000f)
+30  ffff     65ff      0 (0000)
 CPU halted.
 */
 
 // Without nops
 /*
-Clock  PC   IFID_IR  IDEX_IR  WD
-1       2   7207     710f      x (xxxx)
-1       4   26c0     7207     15 (000f)
-1       6   16c0     26c0      7 (0007)
-1       8   3980     16c0      0 (0000)
-1      10   06c0     3980      8 (0008)
-1      12   4740     06c0     15 (000f)
-1      14   710f     4740     22 (0016)
-1      16   65ff     710f    -16 (fff0)
-1      18   ffff     65ff     15 (000f)
+PC  IFID_IR  IDEX_IR  WD
+ 2  7207     710f      x (xxxx)
+ 4  26c0     7207     15 (000f)
+ 6  16c0     26c0      7 (0007)
+ 8  3980     16c0      0 (0000)
+10  06c0     3980      8 (0008)
+12  4740     06c0     15 (000f)
+14  710f     4740     22 (0016)
+16  65ff     710f    -16 (fff0)
+18  ffff     65ff     15 (000f)
 CPU halted.
 */
