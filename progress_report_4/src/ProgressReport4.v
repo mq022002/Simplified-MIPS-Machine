@@ -430,11 +430,11 @@ module CPUTestbench;
     always #1 clock = ~clock;
     initial begin
         $display("Clock  PC   IFID_IR  IDEX_IR  WD");
-        $monitor("%b      %2d   %h     %h %d (%h)", clock, PC, IFID_IR, IDEX_IR, WD, WD);
         clock = 1;
         #2;
         while (IFID_IR != 16'hFFFF) begin
-            #2; 
+            @(posedge clock);
+            $display("%b      %2d   %h     %h %d (%h)", clock, PC, IFID_IR, IDEX_IR, WD, WD);
         end
         $display("CPU halted.");
         $finish;
@@ -445,59 +445,35 @@ endmodule
 // With nops
 /*
 Clock  PC   IFID_IR  IDEX_IR  WD
-1       0   710f     xxxx      x (xxxx)
-0       2   7207     710f      x (xxxx)
 1       2   7207     710f      x (xxxx)
-0       4   0000     7207     15 (000f)
 1       4   0000     7207     15 (000f)
-0       6   26c0     0000      7 (0007)
 1       6   26c0     0000      7 (0007)
-0       8   0000     26c0      0 (0000)
 1       8   0000     26c0      0 (0000)
-0      10   16c0     0000      7 (0007)
 1      10   16c0     0000      7 (0007)
-0      12   0000     16c0      0 (0000)
 1      12   0000     16c0      0 (0000)
-0      14   3980     0000      8 (0008)
 1      14   3980     0000      8 (0008)
-0      16   0000     3980      0 (0000)
 1      16   0000     3980      0 (0000)
-0      18   06c0     0000     15 (000f)
 1      18   06c0     0000     15 (000f)
-0      20   0000     06c0      0 (0000)
 1      20   0000     06c0      0 (0000)
-0      22   4740     0000     30 (001e)
 1      22   4740     0000     30 (001e)
-0      24   710f     4740      0 (0000)
 1      24   710f     4740      0 (0000)
-0      26   0000     710f    -32 (ffe0)
 1      26   0000     710f    -32 (ffe0)
-0      28   65ff     0000     15 (000f)
 1      28   65ff     0000     15 (000f)
-0      30   ffff     65ff      0 (0000)
+1      30   ffff     65ff      0 (0000)
 CPU halted.
 */
 
 // Without nops
 /*
 Clock  PC   IFID_IR  IDEX_IR  WD
-1       0   710f     xxxx      x (xxxx)
-0       2   7207     710f      x (xxxx)
 1       2   7207     710f      x (xxxx)
-0       4   26c0     7207     15 (000f)
 1       4   26c0     7207     15 (000f)
-0       6   16c0     26c0      7 (0007)
 1       6   16c0     26c0      7 (0007)
-0       8   3980     16c0      0 (0000)
 1       8   3980     16c0      0 (0000)
-0      10   06c0     3980      8 (0008)
 1      10   06c0     3980      8 (0008)
-0      12   4740     06c0     15 (000f)
 1      12   4740     06c0     15 (000f)
-0      14   710f     4740     22 (0016)
 1      14   710f     4740     22 (0016)
-0      16   65ff     710f    -16 (fff0)
 1      16   65ff     710f    -16 (fff0)
-0      18   ffff     65ff     15 (000f)
+1      18   ffff     65ff     15 (000f)
 CPU halted.
 */
