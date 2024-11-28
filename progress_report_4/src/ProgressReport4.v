@@ -380,30 +380,30 @@ module CPU (
     reg [15:0] IDEX_IR_reg;
     reg [15:0] WD_reg;
     reg halt;
-    wire [15:0] NextPC, A, RD2, B, SignExtend, ALUOut;
+    wire [15:0] NextPC, A, RD2, B, SignExtend, ALUOut, MemReadData, WD_wire;
     wire [3:0] ALUControl;
     wire [1:0] WR;
-    wire RegDst, ALUSrc, RegWrite, Zero;
+    wire RegDst, ALUSrc, RegWrite, MemWrite, MemtoReg, Zero;
     reg [15:0] IFID_PC; 
     reg [15:0] IDEX_PC, IDEX_A, IDEX_RD2, IDEX_SignExtend;
-    reg IDEX_RegWrite, IDEX_ALUSrc, IDEX_RegDst;
+    reg IDEX_RegWrite, IDEX_ALUSrc, IDEX_RegDst, IDEX_MemWrite, IDEX_MemtoReg;
     reg [3:0] IDEX_ALUControl;
     reg [1:0] IDEX_WR;
     InstructionMemory instr_mem (.Address(PC_reg), .Instruction(IFID_IR));
+    DataMemory data_mem (.clock(clock), .address(ALUOut), .writeData(IDEX_RD2), .memWrite(IDEX_MemWrite), .readData(MemReadData));
     initial begin
         PC_reg = 0;
         halt = 0;
     end
     assign PC = PC_reg;
-    ControlUnit MainCtr(.Op(IFID_IR[15:12]), .RegDst(RegDst), .ALUSrc(ALUSrc), .RegWrite(RegWrite), .ALUControl(ALUControl));
-    RegisterFile rf(.RR1(IFID_IR[11:10]), .RR2(IFID_IR[9:8]), .WR(IDEX_WR), .WD(ALUOut), .RegWrite(IDEX_RegWrite), .clock(clock), .RD1(A), .RD2(RD2));
+    ControlUnit MainCtr(.Op(IFID_IR[15:12]), .RegDst(RegDst), .ALUSrc(ALUSrc), .RegWrite(RegWrite), .MemWrite(MemWrite), .MemtoReg(MemtoReg), .ALUControl(ALUControl));
+    RegisterFile rf(.RR1(IFID_IR[11:10]), .RR2(IFID_IR[9:8]), .WR(IDEX_WR), .WD(WD_reg), .RegWrite(IDEX_RegWrite), .clock(clock), .RD1(A), .RD2(RD2));
     assign SignExtend = {{8{IFID_IR[7]}}, IFID_IR[7:0]}; 
     Mux2To1 #(2) RegDstMux (.a(IFID_IR[9:8]), .b(IFID_IR[7:6]), .sel(RegDst), .y(WR));
     Mux2To1 #(16) ALUSrcMux (.a(IDEX_RD2), .b(IDEX_SignExtend), .sel(IDEX_ALUSrc), .y(B));
+    Mux2To1 #(16) MemToRegMux (.a(ALUOut), .b(MemReadData), .sel(IDEX_MemtoReg), .y(WD_wire));
     ALU ex(.op(IDEX_ALUControl), .a(IDEX_A), .b(B), .result(ALUOut), .zero(Zero));
     ALU fetch(.op(4'b0010), .a(PC_reg), .b(16'd2), .result(NextPC), .zero());
-    assign IDEX_IR = IDEX_IR_reg;
-    assign WD = WD_reg;
     always @(negedge clock) begin
         if (IFID_IR == 16'hFFFF) halt <= 1;
         if (!halt) begin
@@ -421,15 +421,19 @@ module CPU (
             IDEX_RegWrite <= RegWrite;
             IDEX_ALUSrc <= ALUSrc;
             IDEX_RegDst <= RegDst;
+            IDEX_MemWrite <= MemWrite;
+            IDEX_MemtoReg <= MemtoReg;
             IDEX_ALUControl <= ALUControl;
             IDEX_WR <= WR;
             // === END OF ID/EX PIPELINE STAGE ===
 
             // === START OF EX/MEM Pipeline Stage ===
-            WD_reg <= ALUOut;
+            WD_reg <= WD_wire;
             // === END OF EX/MEM Pipeline Stage ===
         end
     end
+    assign IDEX_IR = IDEX_IR_reg;
+    assign WD = WD_reg;
 endmodule
 // === END OF CPU ===
 
@@ -464,12 +468,12 @@ endmodule
 /*
 PC  IFID_IR  IDEX_IR  WD
  2  8e04     8d00      x (xxxx)
- 4  0000     8e04      0 (0000)
- 6  0000     0000      4 (0004)
+ 4  0000     8e04      5 (0005)
+ 6  0000     0000      x (xxxx)
  8  0000     0000      0 (0000)
 10  69c0     0000      0 (0000)
 12  0000     69c0      0 (0000)
-14  0000     0000      0 (0000)
+14  0000     0000      X (000X)
 16  0000     0000      0 (0000)
 18  4c05     0000      0 (0000)
 20  0000     4c05      0 (0000)
@@ -477,21 +481,21 @@ PC  IFID_IR  IDEX_IR  WD
 24  0000     0000      0 (0000)
 26  ad04     0000      0 (0000)
 28  ae00     ad04      0 (0000)
-30  0000     ae00      0 (0000)
-32  0000     0000     -4 (fffc)
+30  0000     ae00      x (xxxx)
+32  0000     0000     -5 (fffb)
 34  0000     0000      0 (0000)
 36  8d00     0000      0 (0000)
 38  8e04     8d00      0 (0000)
-40  0000     8e04      0 (0000)
-42  0000     0000      4 (0004)
+40  0000     8e04      5 (0005)
+42  0000     0000      x (xxxx)
 44  0000     0000      0 (0000)
 46  5a80     0000      0 (0000)
 48  0000     5a80      0 (0000)
-50  0000     0000     -5 (fffb)
+50  0000     0000     -6 (fffa)
 52  0000     0000      0 (0000)
 54  7a01     0000      0 (0000)
 56  0000     7a01      0 (0000)
-58  0000     0000     -4 (fffc)
+58  0000     0000      1 (0001)
 60  0000     0000      0 (0000)
 62  06c0     0000      0 (0000)
 64  xxxx     06c0      0 (0000)
@@ -502,15 +506,15 @@ CPU halted.
 /*
 PC  IFID_IR  IDEX_IR  WD
  2  8e04     8d00      x (xxxx)
- 4  69c0     8e04      0 (0000)
- 6  4c05     69c0      4 (0004)
- 8  ad04     4c05      0 (0000)
+ 4  69c0     8e04      5 (0005)
+ 6  4c05     69c0      x (xxxx)
+ 8  ad04     4c05      X (000X)
 10  ae00     ad04     -1 (ffff)
-12  8d00     ae00      0 (0000)
-14  8e04     8d00     -4 (fffc)
-16  5a80     8e04      0 (0000)
-18  7a01     5a80      4 (0004)
-20  06c0     7a01     -5 (fffb)
-22  ffff     06c0      5 (0005)
+12  8d00     ae00      x (xxxx)
+14  8e04     8d00      x (xxxx)
+16  5a80     8e04      x (xxxx)
+18  7a01     5a80      x (xxxx)
+20  06c0     7a01     -6 (fffa)
+22  ffff     06c0      x (xxxx)
 CPU halted.
 */
