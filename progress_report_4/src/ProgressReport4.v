@@ -374,6 +374,8 @@ module CPU (
     output [15:0] PC,
     output [15:0] IFID_IR,
     output [15:0] IDEX_IR,
+    output [15:0] EXMEM_IR,
+    output [15:0] MEMWB_IR,
     output [15:0] WD
     );
     reg [15:0] PC_reg;
@@ -389,19 +391,26 @@ module CPU (
     reg IDEX_RegWrite, IDEX_ALUSrc, IDEX_RegDst, IDEX_MemWrite, IDEX_MemtoReg;
     reg [3:0] IDEX_ALUControl;
     reg [1:0] IDEX_WR;
+    reg EXMEM_RegWrite, EXMEM_MemtoReg, EXMEM_MemWrite;
+    reg [15:0] EXMEM_ALUOut, EXMEM_RD2;
+    reg [1:0] EXMEM_rd;
+    reg MEMWB_RegWrite, MEMWB_MemtoReg;
+    reg [15:0] MEMWB_ALUOut, MEMWB_MemOut;
+    reg [1:0] MEMWB_rd;
+    reg [15:0] EXMEM_IR, MEMWB_IR;
     InstructionMemory instr_mem (.Address(PC_reg), .Instruction(IFID_IR));
-    DataMemory data_mem (.clock(clock), .address(ALUOut), .writeData(IDEX_RD2), .memWrite(IDEX_MemWrite), .readData(MemReadData));
+    DataMemory data_mem (.clock(clock), .address(EXMEM_ALUOut), .writeData(EXMEM_RD2), .memWrite(EXMEM_MemWrite), .readData(MemReadData));
     initial begin
         PC_reg = 0;
         halt = 0;
     end
     assign PC = PC_reg;
     ControlUnit MainCtr(.Op(IFID_IR[15:12]), .RegDst(RegDst), .ALUSrc(ALUSrc), .RegWrite(RegWrite), .MemWrite(MemWrite), .MemtoReg(MemtoReg), .ALUControl(ALUControl));
-    RegisterFile rf(.RR1(IFID_IR[11:10]), .RR2(IFID_IR[9:8]), .WR(IDEX_WR), .WD(WD_reg), .RegWrite(IDEX_RegWrite), .clock(clock), .RD1(A), .RD2(RD2));
+    RegisterFile rf(.RR1(IFID_IR[11:10]), .RR2(IFID_IR[9:8]), .WR(MEMWB_rd), .WD(WD_reg), .RegWrite(MEMWB_RegWrite), .clock(clock), .RD1(A), .RD2(RD2));
     assign SignExtend = {{8{IFID_IR[7]}}, IFID_IR[7:0]}; 
     Mux2To1 #(2) RegDstMux (.a(IFID_IR[9:8]), .b(IFID_IR[7:6]), .sel(RegDst), .y(WR));
     Mux2To1 #(16) ALUSrcMux (.a(IDEX_RD2), .b(IDEX_SignExtend), .sel(IDEX_ALUSrc), .y(B));
-    Mux2To1 #(16) MemToRegMux (.a(ALUOut), .b(MemReadData), .sel(IDEX_MemtoReg), .y(WD_wire));
+    Mux2To1 #(16) MemToRegMux (.a(MEMWB_ALUOut), .b(MEMWB_MemOut), .sel(MEMWB_MemtoReg), .y(WD_wire));
     ALU ex(.op(IDEX_ALUControl), .a(IDEX_A), .b(B), .result(ALUOut), .zero(Zero));
     ALU fetch(.op(4'b0010), .a(PC_reg), .b(16'd2), .result(NextPC), .zero());
     always @(negedge clock) begin
@@ -427,9 +436,28 @@ module CPU (
             IDEX_WR <= WR;
             // === END OF ID/EX PIPELINE STAGE ===
 
-            // === START OF EX/MEM Pipeline Stage ===
+            // === START OF EX/MEM PIPELINE STAGE ===
+            EXMEM_RegWrite <= IDEX_RegWrite;
+            EXMEM_MemtoReg <= IDEX_MemtoReg;
+            EXMEM_MemWrite <= IDEX_MemWrite;
+            EXMEM_ALUOut <= ALUOut;
+            EXMEM_RD2 <= IDEX_RD2;
+            EXMEM_rd <= IDEX_WR;
+            EXMEM_IR <= IDEX_IR_reg; // Added
+            // === END OF EX/MEM PIPELINE STAGE ===
+
+            // === START OF MEM/WB PIPELINE STAGE ===
+            MEMWB_RegWrite <= EXMEM_RegWrite;
+            MEMWB_MemtoReg <= EXMEM_MemtoReg;
+            MEMWB_ALUOut <= EXMEM_ALUOut;
+            MEMWB_MemOut <= MemReadData;
+            MEMWB_rd <= EXMEM_rd;
+            MEMWB_IR <= EXMEM_IR; // Added
+            // === END OF MEM/WB PIPELINE STAGE ===
+
+            // === START OF WRITE BACK STAGE ===
             WD_reg <= WD_wire;
-            // === END OF EX/MEM Pipeline Stage ===
+            // === END OF WRITE BACK STAGE ===
         end
     end
     assign IDEX_IR = IDEX_IR_reg;
@@ -441,22 +469,25 @@ endmodule
 // Author(s): Joey Conroy, Abbie Mathew
 module CPUTestbench;
     reg clock;
-    wire signed [15:0] PC, IFID_IR, IDEX_IR, WD;
+    wire signed [15:0] PC, IFID_IR, IDEX_IR, EXMEM_IR, MEMWB_IR, WD;
     CPU test_cpu(
         .clock(clock),
         .PC(PC),
         .IFID_IR(IFID_IR),
         .IDEX_IR(IDEX_IR),
+        .EXMEM_IR(EXMEM_IR),
+        .MEMWB_IR(MEMWB_IR),
         .WD(WD)
         );
     always #1 clock = ~clock;
     initial begin
-        $display("PC  IFID_IR  IDEX_IR  WD");
+        $display("PC  IFID_IR  IDEX_IR  EXMEM_IR  MEMWB_IR  WD");
         clock = 1;
         #2;
         while (IFID_IR != 16'hFFFF) begin
             @(posedge clock);
-            $display("%2d  %h     %h %d (%h)", PC, IFID_IR, IDEX_IR, WD, WD);
+            $display("%2d  %h     %h     %h      %h  %d (%h)", 
+                PC, IFID_IR, IDEX_IR, EXMEM_IR, MEMWB_IR, WD, WD);
         end
         $display("CPU halted.");
         $finish;
@@ -466,55 +497,55 @@ endmodule
 
 // With nops
 /*
-PC  IFID_IR  IDEX_IR  WD
- 2  8e04     8d00      x (xxxx)
- 4  0000     8e04      5 (0005)
- 6  0000     0000      x (xxxx)
- 8  0000     0000      0 (0000)
-10  69c0     0000      0 (0000)
-12  0000     69c0      0 (0000)
-14  0000     0000      X (000X)
-16  0000     0000      0 (0000)
-18  4c05     0000      0 (0000)
-20  0000     4c05      0 (0000)
-22  0000     0000     -1 (ffff)
-24  0000     0000      0 (0000)
-26  ad04     0000      0 (0000)
-28  ae00     ad04      0 (0000)
-30  0000     ae00      x (xxxx)
-32  0000     0000     -5 (fffb)
-34  0000     0000      0 (0000)
-36  8d00     0000      0 (0000)
-38  8e04     8d00      0 (0000)
-40  0000     8e04      5 (0005)
-42  0000     0000      x (xxxx)
-44  0000     0000      0 (0000)
-46  5a80     0000      0 (0000)
-48  0000     5a80      0 (0000)
-50  0000     0000     -6 (fffa)
-52  0000     0000      0 (0000)
-54  7a01     0000      0 (0000)
-56  0000     7a01      0 (0000)
-58  0000     0000      1 (0001)
-60  0000     0000      0 (0000)
-62  06c0     0000      0 (0000)
-64  xxxx     06c0      0 (0000)
+PC  IFID_IR  IDEX_IR  EXMEM_IR  MEMWB_IR  WD
+ 2  8e04     8d00     xxxx      xxxx       x (xxxx)
+ 4  0000     8e04     8d00      xxxx       x (xxxx)
+ 6  0000     0000     8e04      8d00       x (xxxx)
+ 8  0000     0000     0000      8e04       5 (0005)
+10  69c0     0000     0000      0000       x (xxxx)
+12  0000     69c0     0000      0000       0 (0000)
+14  0000     0000     69c0      0000       0 (0000)
+16  0000     0000     0000      69c0       0 (0000)
+18  4c05     0000     0000      0000       X (000X)
+20  0000     4c05     0000      0000       0 (0000)
+22  0000     0000     4c05      0000       0 (0000)
+24  0000     0000     0000      4c05       0 (0000)
+26  ad04     0000     0000      0000      -1 (ffff)
+28  ae00     ad04     0000      0000       0 (0000)
+30  0000     ae00     ad04      0000       0 (0000)
+32  0000     0000     ae00      ad04       0 (0000)
+34  0000     0000     0000      ae00       x (xxxx)
+36  8d00     0000     0000      0000      -5 (fffb)
+38  8e04     8d00     0000      0000       0 (0000)
+40  0000     8e04     8d00      0000       0 (0000)
+42  0000     0000     8e04      8d00       0 (0000)
+44  0000     0000     0000      8e04       5 (0005)
+46  5a80     0000     0000      0000       x (xxxx)
+48  0000     5a80     0000      0000       0 (0000)
+50  0000     0000     5a80      0000       0 (0000)
+52  0000     0000     0000      5a80       0 (0000)
+54  7a01     0000     0000      0000      -6 (fffa)
+56  0000     7a01     0000      0000       0 (0000)
+58  0000     0000     7a01      0000       0 (0000)
+60  0000     0000     0000      7a01       0 (0000)
+62  06c0     0000     0000      0000       1 (0001)
+64  xxxx     06c0     0000      0000       0 (0000)
 CPU halted.
 */
 
 // Without nops
 /*
-PC  IFID_IR  IDEX_IR  WD
- 2  8e04     8d00      x (xxxx)
- 4  69c0     8e04      5 (0005)
- 6  4c05     69c0      x (xxxx)
- 8  ad04     4c05      X (000X)
-10  ae00     ad04     -1 (ffff)
-12  8d00     ae00      x (xxxx)
-14  8e04     8d00      x (xxxx)
-16  5a80     8e04      x (xxxx)
-18  7a01     5a80      x (xxxx)
-20  06c0     7a01     -6 (fffa)
-22  ffff     06c0      x (xxxx)
+PC  IFID_IR  IDEX_IR  EXMEM_IR  MEMWB_IR  WD
+ 2  8e04     8d00     xxxx      xxxx       x (xxxx)
+ 4  69c0     8e04     8d00      xxxx       x (xxxx)
+ 6  4c05     69c0     8e04      8d00       x (xxxx)
+ 8  ad04     4c05     69c0      8e04       5 (0005)
+10  ae00     ad04     4c05      69c0       x (xxxx)
+12  8d00     ae00     ad04      4c05       0 (0000)
+14  8e04     8d00     ae00      ad04      -1 (ffff)
+16  5a80     8e04     8d00      ae00       x (xxxx)
+18  7a01     5a80     8e04      8d00      -5 (fffb)
+20  06c0     7a01     5a80      8e04       x (xxxx)
+22  ffff     06c0     7a01      5a80       x (xxxx)
 CPU halted.
 */
