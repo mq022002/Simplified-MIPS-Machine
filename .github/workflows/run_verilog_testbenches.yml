@@ -15,6 +15,6 @@ jobs:
       - name: Install Icarus Verilog
         run: sudo apt-get update && sudo apt-get install -y iverilog
 
-      - name: Run ProgressReport3
+      - name: Run ProgressReport4
         run: make ci
-        working-directory: progress_report_3
+        working-directory: progress_report_4
