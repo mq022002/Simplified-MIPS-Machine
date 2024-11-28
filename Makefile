@@ -1,19 +1,52 @@
 # Usage:
+# behavioral_serial_adder.v
+# 	- make dev0
+# 	- make ci0
+# 	- make clean0
+# ProgressReport1.v
 # 	- make dev1
 # 	- make ci1
 # 	- make clean1
+# ProgressReport2.v
 # 	- make dev2
 # 	- make ci2
 # 	- make clean2
+# ProgressReport3.v
 # 	- make dev3
 # 	- make ci3
 # 	- make clean3
+# ProgressReport4.v
 # 	- make dev4
 # 	- make ci4
 # 	- make clean4
 
 IVERILOG = iverilog
 VVP = vvp
+
+BEHAVIORALSERIALADDER_SRC_DIR = behavioral_serial_adder
+BEHAVIORALSERIALADDER_OUT_DIR = behavioral_serial_adder
+BEHAVIORALSERIALADDER = behavioral_serial_adder.v
+BEHAVIORALSERIALADDER_OUT = $(BEHAVIORALSERIALADDER_OUT_DIR)/behavioral_serial_adder.out
+dev0: clean0
+	$(IVERILOG) -o $(BEHAVIORALSERIALADDER_OUT) $(BEHAVIORALSERIALADDER_SRC_DIR)/$(BEHAVIORALSERIALADDER)
+	$(VVP) $(BEHAVIORALSERIALADDER_OUT)
+ci0: 
+	$(IVERILOG) -o $(BEHAVIORALSERIALADDER_OUT) $(BEHAVIORALSERIALADDER_SRC_DIR)/$(BEHAVIORALSERIALADDER)
+	$(VVP) $(BEHAVIORALSERIALADDER_OUT)
+clean0:
+ifeq ($(OS),Windows_NT)
+	@echo "Detected OS: $(OS)"
+	powershell -Command "Remove-Item -Path .\$(BEHAVIORALSERIALADDER_OUT_DIR)\*.out -Force"
+else
+	UNAME_S = $(shell uname -s)
+	@echo "Detected OS: $(UNAME_S)"
+	ifeq ($(UNAME_S),Linux)
+		rm -f $(BEHAVIORALSERIALADDER_OUT_DIR)/*.out
+	endif
+	ifeq ($(UNAME_S),Darwin)
+		rm -f $(BEHAVIORALSERIALADDER_OUT_DIR)/*.out
+	endif
+endif
 
 PROGRESREPORT1_SRC_DIR = progress_report_1/src
 PROGRESREPORT1_OUT_DIR = progress_report_1/src
