@@ -443,7 +443,7 @@ module CPU (
             EXMEM_ALUOut <= ALUOut;
             EXMEM_RD2 <= IDEX_RD2;
             EXMEM_rd <= IDEX_WR;
-            EXMEM_IR <= IDEX_IR_reg; // Added
+            EXMEM_IR <= IDEX_IR_reg;
             // === END OF EX/MEM PIPELINE STAGE ===
 
             // === START OF MEM/WB PIPELINE STAGE ===
@@ -452,7 +452,7 @@ module CPU (
             MEMWB_ALUOut <= EXMEM_ALUOut;
             MEMWB_MemOut <= MemReadData;
             MEMWB_rd <= EXMEM_rd;
-            MEMWB_IR <= EXMEM_IR; // Added
+            MEMWB_IR <= EXMEM_IR;
             // === END OF MEM/WB PIPELINE STAGE ===
 
             // === START OF WRITE BACK STAGE ===

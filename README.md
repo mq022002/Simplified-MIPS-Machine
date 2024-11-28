@@ -66,11 +66,38 @@ brew install make
 make
 ```
 
-6. A Makefile is already configured for your convenience. Instructions on usage are included there, but just to make sure there is not confusion. Ensure you are in the progress_report_1 directory:
+6. A root Makefile is already configured for your convenience. Commands for running the testing file and various progress reports are listed at the top, and here as well:
+
+Commands:
+
+```makefile
+# Usage:
+# behavioral_serial_adder.v
+# 	- make dev0
+# 	- make ci0
+# 	- make clean0
+# ProgressReport1.v
+# 	- make dev1
+# 	- make ci1
+# 	- make clean1
+# ProgressReport2.v
+# 	- make dev2
+# 	- make ci2
+# 	- make clean2
+# ProgressReport3.v
+# 	- make dev3
+# 	- make ci3
+# 	- make clean3
+# ProgressReport4.v
+# 	- make dev4
+# 	- make ci4
+# 	- make clean4
+```
+
+Example:
 
 ```bash
-cd progress_report_1
-make compile_and_run_ALU_tb
+make dev1
 ```
 
 ### VS Code Task
