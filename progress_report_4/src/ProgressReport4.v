@@ -251,8 +251,8 @@ module DataMemory (
     );
     reg [15:0] DMemory[0:1023];
     initial begin
-        DMemory[0] = 16'd5;
-        DMemory[1] = 16'd7;
+        DMemory[0] = 16'b0000000000000101;
+        DMemory[1] = 16'b0000000000000111;
     end
     assign readData = DMemory[address >> 1];
     always @(negedge clock) begin
