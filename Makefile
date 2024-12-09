@@ -1,24 +1,28 @@
 # Usage:
-# behavioral_serial_adder.v
+# behavioral_serial_adder/behavioral_serial_adder.v
 # 	- make dev0
 # 	- make ci0
 # 	- make clean0
-# ProgressReport1.v
+# progress_report_1/src/ProgressReport1.v
 # 	- make dev1
 # 	- make ci1
 # 	- make clean1
-# ProgressReport2.v
+# progress_report_2/src/ProgressReport2.v
 # 	- make dev2
 # 	- make ci2
 # 	- make clean2
-# ProgressReport3.v
+# progress_report_3/src/ProgressReport3.v
 # 	- make dev3
 # 	- make ci3
 # 	- make clean3
-# ProgressReport4.v
+# progress_report_4/src/ProgressReport4.v
 # 	- make dev4
 # 	- make ci4
 # 	- make clean4
+# progress_report_4_v2/src/ProgressReport4.v
+# 	- make dev4.2
+# 	- make ci4.2
+# 	- make clean4.2
 
 IVERILOG = iverilog
 VVP = vvp
@@ -134,6 +138,31 @@ ci4:
 	$(IVERILOG) -o $(PROGRESS_REPORT4_OUT) $(PROGRESREPORT4_SRC_DIR)/$(PROGRESS_REPORT4)
 	$(VVP) $(PROGRESS_REPORT4_OUT)
 clean4:
+ifeq ($(OS),Windows_NT)
+	@echo "Detected OS: $(OS)"
+	powershell -Command "Remove-Item -Path .\$(PROGRESREPORT4_OUT_DIR)\*.out -Force"
+else
+	UNAME_S = $(shell uname -s)
+	@echo "Detected OS: $(UNAME_S)"
+	ifeq ($(UNAME_S),Linux)
+		rm -f $(PROGRESREPORT4_OUT_DIR)/*.out
+	endif
+	ifeq ($(UNAME_S),Darwin)
+		rm -f $(PROGRESREPORT4_OUT_DIR)/*.out
+	endif
+endif
+
+PROGRESREPORT4_SRC_DIR = progress_report_4_v2/src
+PROGRESREPORT4_OUT_DIR = progress_report_4_v2/src
+PROGRESS_REPORT4 = ProgressReport4.v
+PROGRESS_REPORT4_OUT = $(PROGRESREPORT4_OUT_DIR)/ProgressReport4.out
+dev4.2: clean4
+	$(IVERILOG) -o $(PROGRESS_REPORT4_OUT) $(PROGRESREPORT4_SRC_DIR)/$(PROGRESS_REPORT4)
+	$(VVP) $(PROGRESS_REPORT4_OUT)
+ci4.2: 
+	$(IVERILOG) -o $(PROGRESS_REPORT4_OUT) $(PROGRESREPORT4_SRC_DIR)/$(PROGRESS_REPORT4)
+	$(VVP) $(PROGRESS_REPORT4_OUT)
+clean4.2:
 ifeq ($(OS),Windows_NT)
 	@echo "Detected OS: $(OS)"
 	powershell -Command "Remove-Item -Path .\$(PROGRESREPORT4_OUT_DIR)\*.out -Force"
